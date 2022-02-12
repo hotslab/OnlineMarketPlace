@@ -16,8 +16,7 @@ class ProductController extends Controller
     public function index()
     {
         $products = Product::orderBy("created_at", "DESC")->paginate(15);
-        // dd($products->links());
-        return View::make('products.list', ['products' => $products ]);
+        return View::make('products.products', ['products' => $products ]);
     }
 
     /**
@@ -49,7 +48,8 @@ class ProductController extends Controller
      */
     public function show($id)
     {
-        //
+        $product = Product::find($id);
+        return View::make('products.product', ['product' => $product ]);
     }
 
     /**

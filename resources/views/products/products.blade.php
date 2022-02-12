@@ -3,19 +3,19 @@
 @section('content')
 <div class="container">
     <div class="row justify-content-center">
-        <div class="col-md-12">
-            @foreach ($products as $product)
-                <div class="card">
-                    <img class="card-img-top" src="..." alt="Card image cap">
-                    <div class="card-body">
-                        <h5 class="card-title">{{ $product->$name }}</h5>
-                        <p class="card-text">$ {{ $product->$price }}</p>
-                        <a href="#" class="btn btn-primary">View</a>
-                    </div>
+        @foreach ($products as $product)
+            <div class="card m-3 p-2" style="width:250px;">
+                <img class="card-img-top" src="{{ $product->image }}" alt="Card image cap">
+                <div class="card-body">
+                    <h6 class="card-title">{{ $product->name }}</h6>
+                    <span class="card-text">$ {{ $product->price }}</span><br/>
+                    <a href="{{ route('products.show', ['id' => $product->id ]) }}" class="btn btn-primary">View</a>
                 </div>
-            @endforeach
-        </div>
+            </div>
+        @endforeach
         {{ $products->links() }}
+    </div>
+    <div class="d-flex mt-3 justify-content-center">
         <nav aria-label="Page navigation example">
             <ul class="pagination">
                 <li class="page-item"><a class="page-link" href="#">Previous</a></li>

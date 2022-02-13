@@ -15,9 +15,7 @@
         @endforeach
     </div>
     <div class="d-flex mt-3 justify-content-center">
-        <div id="removeClass">
-            {{ $products->links() }}
-        </div>
+        {{ $products->links('vendor.pagination.bootstrap-4') }}
         <!-- <nav aria-label="Page navigation example">
             <ul class="pagination">
                 <li class="page-item"><a class="page-link" href="#">Previous</a></li>
@@ -29,7 +27,4 @@
         </nav> -->
     </div>
 </div>
-<script>
-    document.getElementById('removeClass').className = '';
-</script>
 @endsection

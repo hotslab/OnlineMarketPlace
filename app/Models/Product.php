@@ -16,4 +16,9 @@ class Product extends Model
         "name",
         "price"
     ];
+
+    public function userProduct()
+    {
+        return $this->hasOne(UserProduct::class, "product_id");
+    }
 }

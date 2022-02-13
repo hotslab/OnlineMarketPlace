@@ -8,6 +8,7 @@
             <div class="card-body">
                 <h4 class="card-title">{{ $product->name }}</h4>
                 <span class="card-text">$ {{ $product->price }}</span><br/>
+                <span class="card-text">UserID - {{ $product->userProduct->id ?? 'no value' }}</span><br/>
                 <div class="mt-3 d-flex justify-content-end">
                     <a href="{{ route('products.view') }}" class="card-link ml-3 btn btn-danger">Back</a>
                     <a href="#" class="card-link ml-3 btn btn-success">Edit</a>

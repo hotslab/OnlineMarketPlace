@@ -13,13 +13,17 @@ class UserProduct extends Model
 
     protected $fillable = [
         "product_id",
-        "user_id",
-        "email"
+        "user_id"
     ];
+
+    public function user()
+    {
+        return $this->hasOne(User::class, "id", "user_id");
+    }
 
     public function product()
     {
-        return $this->hasOne(Product::class, "id");
+        return $this->hasOne(Product::class, "id", "product_id");
     }
 }
 

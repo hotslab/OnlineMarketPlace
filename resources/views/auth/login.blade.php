@@ -3,6 +3,11 @@
 @section('content')<div class="container">
 <div class="row justify-content-center">
     <div class="col-md-6">
+        @if (\Session::has('failure'))
+            <div id="profile" class="alert alert-danger alert-dismissible fade show" role="alert">
+                <strong>{!! \Session::get('failure') !!}</strong>
+            </div>
+        @endif
         <div class="text-bold mt-3 md-4">
             <h5>Login</h5>
         </div>

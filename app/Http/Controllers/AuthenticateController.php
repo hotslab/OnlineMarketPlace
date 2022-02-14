@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
+
 use App\Models\User;
  
 class AuthenticateController extends Controller
@@ -19,8 +21,9 @@ class AuthenticateController extends Controller
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
             return redirect()->route('products.view');
+        } else {
+            return back()->with('failure', 'Incorrect credentials used. Please try again.');
         }
- 
     }
 
     public function register(Request $request)
@@ -38,7 +41,11 @@ class AuthenticateController extends Controller
             'email' => $request->input('email'),
             'password' => Hash::make($request->input('password')),
         ]);
-        return redirect()->route('products.view');
+        if ($newUser) {
+            return redirect()->route('products.view');
+        } else {
+            back()->with('failure', 'Profile could not be created. Please try again.');
+        }
     }
 
     public function logout(Request $request)
@@ -47,5 +54,32 @@ class AuthenticateController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
         return redirect()->route('products.view');
+    }
+
+    public function profileUpdate(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'name' => ['required', 'string', 'max:255'],
+            'surname' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore(Auth::user()->id)]
+        ]);
+        if ($validator->fails()) { return back()->withErrors($validator)->withInput(); } 
+        $newUser = Auth::user()
+        ->update([
+            'name' => $request->input('name'),
+            'surname' => $request->input('surname'),
+            'email' => $request->input('email')
+        ]);
+        return back()->with('success', 'Profile details updated successfully.');
+    }
+
+    public function profilePasswordReset(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'password' => ['required', 'string', 'min:8', 'confirmed']
+        ]);
+        if ($validator->fails()) { return back()->withErrors($validator)->withInput(); } 
+        Auth::user()->update(['password' => Hash::make($request->input('password'))]);
+        return back()->with('success', 'Password reset successfully.');
     }
 }

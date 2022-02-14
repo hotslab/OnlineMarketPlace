@@ -40,36 +40,27 @@
                     <ul class="navbar-nav ms-auto">
                         <!-- Authentication Links -->
                         @guest
-                            @if (Route::has('login.view'))
-                                <li class="nav-item">
-                                    <a class="nav-link" href="{{ route('login.view') }}">{{ __('Login') }}</a>
-                                </li>
-                            @endif
-
-                            @if (Route::has('register.view'))
-                                <li class="nav-item">
-                                    <a class="nav-link" href="{{ route('register.view') }}">{{ __('Register') }}</a>
-                                </li>
-                            @endif
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('login.view') }}">{{ __('Login') }}</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('register.view') }}">{{ __('Register') }}</a>
+                            </li>
                         @else
-                            <li class="nav-item dropdown">
-                                <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
-                                    {{ Auth::user()->name }}
+                            <li class="nav-item">
+                                <a class="dropdown-item" href="{{ route('profile.view') }}">Profile</a> 
+                            </li>
+                            <li class="nav-item">
+                                <a class="dropdown-item" href="{{ route('userproducts.view') }}">Manage Products</a> 
+                            </li>
+                            <li class="nav-item">
+                                <a class="dropdown-item" href="{{ route('logout') }}"
+                                    onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                                    {{ __('Logout') }}
                                 </a>
-
-                                <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                                    <!-- <a class="dropdown-item" href="{{ route('profile.view') }}">Profile</a> 
-                                    <a class="dropdown-item" href="{{ route('userproducts.view') }}">Manage Products</a>  -->
-                                    <a class="dropdown-item" href="{{ route('logout') }}"
-                                       onclick="event.preventDefault();
-                                                     document.getElementById('logout-form').submit();">
-                                        {{ __('Logout') }}
-                                    </a>
-
-                                    <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
-                                        @csrf
-                                    </form>
-                                </div>
+                                <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
+                                    @csrf
+                                </form>
                             </li>
                         @endguest
                     </ul>
@@ -82,7 +73,7 @@
         </main>
     </div>
 </body>
-<footer class="p-3 text-center">
+<footer class="footer mt-5 p-3 bg-primary text-center text-white">
     <p>&copy; Registered Trademark 2022</p>
 </footer>
 </html>

@@ -1,8 +1,20 @@
 window._ = require('lodash');
 
 try {
+    window.$ = window.jQuery = require('jquery');
+    // window.$ = require('jquery');
+    console.log("JQUERY lOADED");
+} catch (e) { 
+    console.log(e, "ERROR LOADING JQUERY");
+}
+
+try {
     require('bootstrap');
-} catch (e) {}
+    console.log("BOOTSTRAP lOADED");
+} catch (e) {
+    console.log(e, "ERROR LOADING BOOTSTRAP")
+}
+
 
 /**
  * We'll load the axios HTTP library which allows us to easily issue requests

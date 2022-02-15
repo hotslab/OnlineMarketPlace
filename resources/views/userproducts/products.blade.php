@@ -4,7 +4,7 @@
 <div class="container">
     <div class="d-flex justify-content-between align-items-center text-bold m-0 mt-3 md-4">
         <h5>Manage Your Products</h5>
-        <a href="{{ route('userproducts.edit', ['status' => 'create', 'productID' => null ]) }}" class="btn btn-primary">New Product</a>
+        <a href="{{ route('userproducts.edit', ['status' => 'create', 'productID' => null ]) }}" class="btn btn-primary">Add New Product</a>
     </div>
     <div class="row justify-content-center">
         @foreach ($userProducts as $userProduct)
@@ -12,8 +12,10 @@
                 <img class="card-img-top" src="{{ $userProduct->product->image }}" alt="Card image cap">
                 <div class="card-body">
                     <h6 class="card-title">{{ $userProduct->product->name }}</h6>
-                    <span class="card-text">$ {{ $userProduct->product->price }}</span><br/>
-                    <a href="{{ route('products.show', ['id' => $userProduct->product->id ]) }}" class="btn btn-primary">View</a>
+                    <p class="card-text">$ {{ $userProduct->product->price }}</p>
+                    <div class="mt-3 d-flex justify-content-end">
+                        <a href="{{ route('products.show', ['id' => $userProduct->product->id, 'origin' => 'user' ]) }}" class="btn btn-primary">View</a>
+                    </div>
                 </div>
             </div>
         @endforeach

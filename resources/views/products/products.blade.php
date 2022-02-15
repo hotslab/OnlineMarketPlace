@@ -12,7 +12,9 @@
                 <div class="card-body">
                     <h6 class="card-title">{{ $product->name }}</h6>
                     <p class="card-text">$ {{ $product->price }}</p>
-                    <a href="{{ route('products.show', ['id' => $product->id ]) }}" class="btn btn-primary">View</a>
+                    <div class="mt-3 d-flex justify-content-end">
+                        <a href="{{ route('products.show', ['id' => $product->id, 'origin' => 'customer' ]) }}" class="btn btn-primary">View</a>
+                    </div>
                 </div>
             </div>
         @endforeach

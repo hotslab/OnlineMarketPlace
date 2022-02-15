@@ -53,9 +53,9 @@ class ProductController extends Controller
             return back()->with('failure', 'Image could not be saved due to unknown error. Please try again');
         }
         $product = Product::create([
-            "image" => $path,
             "name" => $request->input("name"),
             "price" => $request->input("price"),
+            "image" => $path
         ]);
         if ($product) {
             $userProduct = UserProduct::create([
@@ -79,10 +79,10 @@ class ProductController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show(Request $request, $id)
     {
         $product = Product::find($id);
-        return View::make('products.product', ['product' => $product, "images" => Storage::url($product->image) ]);
+        return View::make('products.product', ['product' => $product, "origin" => $request->input("origin") ]);
     }
 
     /**
@@ -116,9 +116,9 @@ class ProductController extends Controller
             return back()->with('failure', 'New image could not be saved due to unknown error. Please try again');
         }
         $product = Product::where("id", $id)->update([
-            "image" => $path,
             "name" => $request->input("name"),
             "price" => $request->input("price"),
+            "image" => $path
         ]);
         if ($product) {
             return redirect()->route('userproducts.view');
@@ -135,7 +135,21 @@ class ProductController extends Controller
      */
     public function destroy($id)
     {
-        //
+        $deletedUserProduct = UserProduct::where('product_id', $id)->where('user_id', Auth::user()->id)->delete();
+        if ($deletedUserProduct) {
+            Product::find($id)->delete();
+            return response()->json([
+                'status' => 'success',
+                'url' => route('userproducts.view'),
+                'message' => null
+            ]);
+        } else {
+            return response()->json([
+                'status' => 'failure',
+                'url' => route('products.show', ['id' =>$id]),
+                'message' => 'Product could not be deleted due to uknown error. Please try again.'
+            ]);
+        }
     }
 
 

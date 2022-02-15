@@ -44,9 +44,9 @@
                     <small class="text-danger">{{ $message }}</small><br/>
                 @endforeach
             </div>
-            <div class="form-group mt-3">
-                <a href="{{ route('products.show', ['id' => $product->id ]) }}" class="card-link ml-3 btn btn-danger">Back</a>
-                <button type="submit" class="btn btn-primary">Submit</button>
+            <div class="form-group mt-3 d-flex justify-content-end">
+                <a href="{{ $status == 'edit' ? route('products.show', ['id' => $product->id ]) : route('userproducts.view') }}" class="btn btn-danger">Back</a>
+                <button type="submit" class="btn btn-primary" style="margin-left: 10px">Submit</button>
             </div>
         </form>
     </div>

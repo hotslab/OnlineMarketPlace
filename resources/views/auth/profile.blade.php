@@ -11,16 +11,6 @@
         <div class="text-bold mt-3 md-4">
             <h5>Profile</h5>
         </div>
-        <div class="card w-100" style="width:250px;">
-            <div class="card-body">
-                <p class="card-title">Name      - {{ $user->name }}</p>
-                <p class="card-title">Surname   - {{ $user->surname }}</p>
-                <p class="card-title">Email     - {{ $user->email }}</p>
-            </div>
-        </div>
-        <div class="text-bold mt-3 md-4">
-            <h5>Update Profile</h5>
-        </div>
         <form id="update-user-form" class="mt-4" method="POST" action="{{ route('profile.update') }}">
             @csrf
             <div class="form-group">
@@ -44,8 +34,8 @@
                     <small class="text-danger">{{ $message }}</small><br/>
                 @endforeach
             </div>
-            <div class="form-group mt-3">
-                <button type="submit" class="btn btn-primary">Submit</button>
+            <div class="form-group mt-3 d-flex justify-content-end">
+                <button type="submit" class="btn btn-primary">Update</button>
             </div>
         </form>
         <div class="text-bold mt-3 md-4">
@@ -67,7 +57,7 @@
                     <small class="text-danger">{{ $message }}</small><br/>
                 @endforeach
             </div>
-            <div class="form-group mt-3">
+            <div class="form-group mt-3 d-flex justify-content-end">
                 <button type="submit" class="btn btn-primary">Submit</button>
             </div>
         </form>

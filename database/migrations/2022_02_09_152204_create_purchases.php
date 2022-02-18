@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateBoughtProducts extends Migration
+class CreatePurchases extends Migration
 {
     /**
      * Run the migrations.
@@ -13,9 +13,10 @@ class CreateBoughtProducts extends Migration
      */
     public function up()
     {
-        Schema::create('bought_products', function (Blueprint $table) {
+        Schema::create('purchases', function (Blueprint $table) {
             $table->id();
-            $table->integer("email");
+            $table->string("email");
+            $table->foreignId("user_id")->references('id')->on('users')->nullable();
             $table->foreignId("product_id")->references('id')->on('products')->nullable();
             $table->timestamps();
         });
@@ -28,6 +29,6 @@ class CreateBoughtProducts extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('bought_products');
+        Schema::dropIfExists('purchases');
     }
 }

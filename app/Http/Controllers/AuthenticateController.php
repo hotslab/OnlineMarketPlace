@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 
 use App\Models\User;
  
@@ -42,7 +44,11 @@ class AuthenticateController extends Controller
             'password' => Hash::make($request->input('password')),
         ]);
         if ($newUser) {
-            return redirect()->route('products.view');
+            $status = $this->sendVerificationEmail($newUser);
+            return redirect()->route('login.view')->with(
+                'success', 
+                'Registration was successful. We have sent you an activation link to '.$newUser->email.', please check in all your folders for the link.'
+            );
         } else {
             back()->with('failure', 'Profile could not be created. Please try again.');
         }
@@ -81,5 +87,71 @@ class AuthenticateController extends Controller
         if ($validator->fails()) { return back()->withErrors($validator)->withInput(); } 
         Auth::user()->update(['password' => Hash::make($request->input('password'))]);
         return back()->with('success', 'Password reset successfully.');
+    }
+
+    protected function sendVerificationEmail(User $user)
+    {
+        $response = Http::get('https://api.elasticemail.com/v2/email/send', [
+            'apikey' => env('ELASTIC_EMAIL_API'),
+            'subject' => 'Email verificaton for OnlineStore',
+            'from' => env('ELASTIC_EMAIL_SENDER_ADDRESS'),
+            'to' => $user->email,
+            'bodyHtml' => 
+                '<div style="text-align:center; padding: 30px;">'.
+                    '<h2 style="color:#1E90FF;">Wecome to the OnlineStore</h2>'.
+                    '<p>Please verify your email by clicking the link below in order to activate your account. The you can start adding and selling products online:</p>'.
+                    '<a href="'.route('email.verify', ['id' => $user->id]).'" style="text-decoration: none;cursor: pointer;">Verify Email</a>'.
+                    '<p style="margin-top: 30px">&copy; OnlineStore 2022</p>'.
+                '</div>'
+        ]);
+        return ["status" => $response->status()];
+    }
+
+    public function verifyEmail($id)
+    {
+        User::find($id)->update(['email_verified_at' => date('Y-m-d H:i:s')]);
+        return redirect()->route('login.view')->with('success', 'Your email has been successfully verified. Please login to start enjoying the use of our services.');
+    }
+
+    public function passwordReset(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'password' => ['required', 'string', 'min:8', 'confirmed']
+        ]);
+        if ($validator->fails()) { return back()->withErrors($validator)->withInput(); } 
+        $userExists = User::where('email', $request->input('email'))->first();
+        if ($userExists) {
+            $token = Str::random(4);
+            $paswwordReset = PasswordReset::updateOrInsert(
+                ['email' => $request->input('email')],
+                ['token' => $token]
+            );
+            if ($paswwordReset) {
+                $this->sendPasswordResetEmail($userExists, $token);
+                // redirct route here
+            } else {
+                return back()->with('failure', 'No user with the email '.$request->input('email').' has been found. Please try again.');    
+            }
+        } else {
+            return back()->with('failure', 'No user with the email '.$request->input('email').' has been found. Please try again.');
+        }
+    }
+
+    protected function sendPasswordResetEmail(User $user, $token)
+    {
+        $response = Http::get('https://api.elasticemail.com/v2/email/send', [
+            'apikey' => env('ELASTIC_EMAIL_API'),
+            'subject' => 'Password reset for OnlineStore',
+            'from' => env('ELASTIC_EMAIL_SENDER_ADDRESS'),
+            'to' => $user->email,
+            'bodyHtml' => 
+                '<div style="text-align:center; padding: 30px;">'.
+                    '<h2 style="color:#1E90FF;">Reset your password for the OnlineStore</h2>'.
+                    '<p>Please enter the otp below in the password reset screen to reset your password :</p>'.
+                    '<h4 style="color:#1E90FF;">'.$token.'</h4>'.
+                    '<p style="margin-top: 30px">&copy; OnlineStore 2022</p>'.
+                '</div>'
+        ]);
+        return ["status" => $response->status()];
     }
 }

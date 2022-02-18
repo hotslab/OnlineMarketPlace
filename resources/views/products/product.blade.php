@@ -11,7 +11,7 @@
                 <h4 class="card-title">{{ $product->name }}</h4>
                 <p class="card-text">$ {{ $product->price }}</p>
                 <div class="mt-3 d-flex justify-content-end">
-                    <a href="{{ $origin == 'user' ? route('userproducts.view') : route('products.view') }}" class="card-link ml-3 btn btn-danger">Back</a>
+                    <a href="{{ $origin == 'user' ? route('userproducts.view', ['id' => auth()->user()->id]) : route('products.view') }}" class="card-link ml-3 btn btn-danger">Back</a>
                     @auth
                         @if ($product->userProduct && Auth::user()->id == $product->userProduct->user_id)
                             <a class="card-link ml-3 btn btn-success"
@@ -25,10 +25,10 @@
                                 Edit
                             </a>
                         @else
-                            <a href="#" class="card-link ml-3 btn btn-success">Buy</a>
+                            <a href="{{ route('purchases.checkout', ['id' => $product->id ]) }}" class="card-link ml-3 btn btn-success">Buy</a>
                         @endif
                     @else
-                        <a href="#" class="card-link ml-3 btn btn-success">Buy</a>
+                        <a href="{{ route('purchases.checkout', ['id' => $product->id ]) }}" class="card-link ml-3 btn btn-success">Buy</a>
                     @endauth
                 </div>
             </div>

@@ -5,7 +5,7 @@
     <div class="col-md-6">
         @if (\Session::has('success'))
             <div id="profile" class="alert alert-success alert-dismissible fade show" role="alert">
-                <strong>{!! \Session::get('success') !!}</strong>
+                {!! \Session::get('success') !!}
             </div>
         @endif
         <div class="text-bold mt-3 md-4">

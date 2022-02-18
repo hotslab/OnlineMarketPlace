@@ -2,44 +2,26 @@
 
 namespace App\Http\Controllers;
 
+use DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\View;
 use App\Models\Product;
+use App\Models\Purchase;
 use App\Models\UserProduct;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Http;
 
 class ProductController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
     public function index()
     {
         $products = Product::orderBy("created_at", "DESC")->paginate(15);
         return View::make('products.products', ['products' => $products ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -63,8 +45,9 @@ class ProductController extends Controller
                 "user_id" => Auth::user()->id
             ]);
             if ($userProduct) {
-                return redirect()->route('userproducts.view');
+                return redirect()->route('userproducts.view', ['id' => Auth::user()->id]);
             } else {
+                Storage::delete($product->image);
                 $product->delete();
                 return back()->with('failure', 'New product could not be linked to user. Please try again.');
             }
@@ -73,36 +56,12 @@ class ProductController extends Controller
         }
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
     public function show(Request $request, $id)
     {
         $product = Product::find($id);
         return View::make('products.product', ['product' => $product, "origin" => $request->input("origin") ]);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
     public function update(Request $request, $id)
     {
         $validator = Validator::make($request->all(), [
@@ -121,18 +80,12 @@ class ProductController extends Controller
             "image" => $path
         ]);
         if ($product) {
-            return redirect()->route('userproducts.view');
+            return redirect()->route('userproducts.view', ['id' => Auth::user()->id]);
         } else {
             return back()->with('failure', 'New product could not be updated. Please try again.');
         }
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
     public function destroy($id)
     {
         $deletedUserProduct = UserProduct::where('product_id', $id)->where('user_id', Auth::user()->id)->delete();
@@ -140,7 +93,7 @@ class ProductController extends Controller
             Product::find($id)->delete();
             return response()->json([
                 'status' => 'success',
-                'url' => route('userproducts.view'),
+                'url' => route('userproducts.view', ['id' => Auth::user()->id]),
                 'message' => null
             ]);
         } else {
@@ -152,10 +105,9 @@ class ProductController extends Controller
         }
     }
 
-
-    public function userProducts(Request $request)
+    public function userProducts($id)
     {
-        $userProducts = UserProduct::orderBy("created_at", "DESC")->paginate(15);
+        $userProducts = UserProduct::where("user_id", $id)->orderBy("created_at", "DESC")->paginate(15);
         return View::make('userproducts.products', ['userProducts' => $userProducts ]);
     }
 
@@ -164,6 +116,98 @@ class ProductController extends Controller
         return View::make('userproducts.edit', [
             'status' => $request->input('status'),
             'product' => $request->has('productID') ? Product::find($request->input('productID')) : null
+        ]);
+    }
+
+    public function userPurchases(Request $request, $id)
+    {
+        $purchases = Purchase::from('purchases as pr')
+        ->leftJoin('products as p', 'p.id', '=', 'pr.product_id')
+        ->leftJoin('user_products as up', 'up.product_id', '=', 'p.id')
+        ->leftJoin('users as u', 'u.id', '=', 'up.user_id')
+        ->where(function ($query) use ($id, $request) {
+            if ($request->input('type') == 'customer') {
+                $query->where('u.id', $id)->where('pr.email', '<>', Auth::user()->email);
+            } else {
+                $query->where('u.id', '<>', $id)->where('pr.email', Auth::user()->email);
+            }
+        })->select( DB::raw('p.*',), DB::raw('u.*',))->paginate(15);
+        return View::make('purchases.purchases', ['type' => $request->input("type"), 'purchases' => $purchases ]);
+    }
+
+
+    public function checkout($id) 
+    {
+        return View::make('purchases.checkout', ['product' => Product::find($id)]);
+    }
+
+
+    public function purchase(Request $request) 
+    {
+        $validator = Validator::make($request->all(), ['email' => ['required', 'string', 'email', 'max:255']]);
+        if ($validator->fails()) { 
+            $errorMessage = "";
+            foreach ($validator->errors()->get('email') as $message) { $errorMessage .= $message."\n\n"; }
+            return response()->json([
+                'status' => 'failure',
+                'url' => route('purchases.checkout', ['id' => $request->input("productID")]),
+                'message' => $errorMessage
+            ]);
+        } 
+        $purchase = Purchase::create([
+            "email" => $request->input("email"),
+            "product_id" => $request->input("productID"),
+            "user_id" => 1
+        ]);
+        if ($purchase) {
+            $this->sendPurchaseEmail($purchase);
+            return response()->json([
+                'status' => 'success',
+                'url' => route('purchases.confirmation', ['id' => $purchase->id]),
+                'message' => "Purchase was successful"
+            ]);
+        } else {
+            return response()->json([
+                'status' => 'failure',
+                'url' => route('purchases.checkout', ['id' => $request->input("productID")]),
+                'message' => 'Purchase failed due to uknown error. Please try again.'
+            ]);
+        }
+    }
+
+    public function confirmation($id) 
+    {
+        return View::make('purchases.confirmation', ['purchase' => Purchase::find($id)]);
+    }
+
+    protected function sendPurchaseEmail(Purchase $purchase) {
+        $response = Http::get('https://api.elasticemail.com/v2/email/send', [
+            'apikey' => env('ELASTIC_EMAIL_API'),
+            'subject' => 'New product purchased '.$purchase->product->name,
+            'from' => env('ELASTIC_EMAIL_SENDER_ADDRESS'),
+            'to' => $purchase->email,
+            'bodyHtml' => 
+                '<div style="text-align:center; padding: 30px;">'.
+                    '<h2 style="color:#1E90FF;">Thank you for shopping at the OnlineStore</h2>'.
+                    '<p>You have successfully purchased the following product at our online store:</p>'.
+                    '<table style="font-family: Arial, Helvetica, sans-serif;border-collapse: collapse;width: 100%; margin-top: 20px;">'.
+                        '<thead style="padding-top: 12px;padding-bottom: 12px;text-align: left;background-color: #1E90FF;color: white;">'.
+                            '<tr>'.
+                                '<th style="border:1px solid #ddd;padding: 8px;">Name</th>'.
+                                '<th style="border:1px solid #ddd;padding: 8px;">Price</th>'.
+                                '<th style="border:1px solid #ddd;padding: 8px;">Quantity (Units)</th>'.
+                            '</tr>'.
+                        '</thead>'.
+                        '<tbody style="text-align: left;">'.
+                            '<tr>'.
+                                '<td style="border:1px solid #ddd;padding: 8px;">'.$purchase->product->name.'</td>'.
+                                '<td style="border:1px solid #ddd;padding: 8px;">'.$purchase->product->price.'</td>'.
+                                '<td style="border:1px solid #ddd;padding: 8px;">1</td>'.
+                            '</tr>'.
+                        '</tbody>'.
+                    '</table>'.
+                    '<p style="margin-top: 30px">&copy; OnlineStore 2022</p>'.
+                '</div>'
         ]);
     }
 }

@@ -5,7 +5,7 @@
     <div class="col-md-6">
         @if (\Session::has('failure'))
             <div id="profile" class="alert alert-danger alert-dismissible fade show" role="alert">
-                <strong>{!! \Session::get('failure') !!}</strong>
+                {!! \Session::get('failure') !!}
             </div>
         @endif
         <div class="text-bold mt-3 md-4">
@@ -45,7 +45,7 @@
                 @endforeach
             </div>
             <div class="form-group mt-3 d-flex justify-content-end">
-                <a href="{{ $status == 'edit' ? route('products.show', ['id' => $product->id ]) : route('userproducts.view') }}" class="btn btn-danger">Back</a>
+                <a href="{{ $status == 'edit' ? route('products.show', ['id' => $product->id ]) : route('userproducts.view', ['id' => auth()->user()->id]) }}" class="btn btn-danger">Back</a>
                 <button type="submit" class="btn btn-primary" style="margin-left: 10px">Submit</button>
             </div>
         </form>

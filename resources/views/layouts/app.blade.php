@@ -11,6 +11,11 @@
 
     <!-- Scripts -->
     <script src="{{ asset('js/app.js') }}" defer></script>
+    @if (Route::current()->action['as'] == 'purchases.checkout')
+        <script src="https://js.yoco.com/sdk/v1/yoco-sdk-web.js"></script>
+        <!-- Include the PayPal JavaScript SDK; replace "test" with your own sandbox Business account app client ID -->
+        {{-- <script src="https://www.paypal.com/sdk/js?client-id=AbxaAV4Io0LVyn-oaYt_nwWiqSv1Um2PxnOi8Lgdgyv5QkI0bXJxOsxGZwh97DRdYuOUN4SJUiAkyBS6&currency=USD"></script> --}}
+    @endif
 
     <!-- Fonts -->
     <link rel="dns-prefetch" href="//fonts.gstatic.com">
@@ -38,25 +43,31 @@
 
                     <!-- Right Side Of Navbar -->
                     <ul class="navbar-nav ms-auto">
-                        <!-- Authentication Links -->
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ route('products.view') }}">Products</a>
+                        </li>
                         @guest
+                            <!-- Authentication Links -->
                             <li class="nav-item">
-                                <a class="nav-link" href="{{ route('login.view') }}">{{ __('Login') }}</a>
+                                <a class="nav-link" href="{{ route('login.view') }}">Login</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="{{ route('register.view') }}">{{ __('Register') }}</a>
+                                <a class="nav-link" href="{{ route('register.view') }}">Register</a>
                             </li>
                         @else
                             <li class="nav-item">
-                                <a class="dropdown-item" href="{{ route('profile.view') }}">Profile</a> 
+                                <a class="nav-link" href="{{ route('userproducts.view', ['id' => auth()->user()->id]) }}">Manage</a> 
                             </li>
                             <li class="nav-item">
-                                <a class="dropdown-item" href="{{ route('userproducts.view') }}">Manage Products</a> 
+                                <a class="nav-link" href="{{ route('purchases.view', ['id' => auth()->user()->id, 'type' => 'customer']) }}">Purchases</a> 
                             </li>
                             <li class="nav-item">
-                                <a class="dropdown-item" href="{{ route('logout') }}"
+                                <a class="nav-link" href="{{ route('profile.view') }}">Profile</a> 
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('logout') }}"
                                     onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                                    {{ __('Logout') }}
+                                    Logout
                                 </a>
                                 <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
                                     @csrf
@@ -67,13 +78,12 @@
                 </div>
             </div>
         </nav>
-
         <main class="py-4">
             @yield('content')
         </main>
     </div>
 </body>
 <footer class="footer mt-5 p-3 bg-primary text-center text-white">
-    <p>&copy; Registered Trademark 2022</p>
+    <p>&copy; OnlineStore 2022</p>
 </footer>
 </html>

@@ -9,7 +9,7 @@
     <div class="row justify-content-center">
         @foreach ($userProducts as $userProduct)
             <div class="card m-3 p-2" style="width:250px;">
-                <img class="card-img-top" src="{{ $userProduct->product->image }}" alt="Card image cap">
+                <img class="card-img-top" src="{{ asset($userProduct->product->image) }}" alt="Card image cap">
                 <div class="card-body">
                     <h6 class="card-title">{{ $userProduct->product->name }}</h6>
                     <p class="card-text">$ {{ $userProduct->product->price }}</p>

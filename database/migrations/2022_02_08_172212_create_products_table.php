@@ -18,6 +18,8 @@ class CreateProductsTable extends Migration
             $table->string("image");
             $table->string("name");
             $table->decimal("price", $precision = 8, $scale = 2);
+            $table->string("currency")->default('USD');
+            $table->string("currency_symbol")->default('$');
             $table->timestamps();
         });
     }

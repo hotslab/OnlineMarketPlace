@@ -5,19 +5,14 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class BoughtProduct extends Model
+class PasswordReset extends Model
 {
     use HasFactory;
 
-    protected $table = "bought_products";
+    protected $table = "password_resets";
 
     protected $fillable = [
         "email",
-        "product_id"
+        "token"
     ];
-
-    public function product()
-    {
-        return $this->hasOne(Product::class, "id");
-    }
 }

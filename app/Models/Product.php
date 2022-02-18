@@ -14,7 +14,9 @@ class Product extends Model
     protected $fillable = [
         "image",
         "name",
-        "price"
+        "price",
+        "currency",
+        "currency_symbol"
     ];
 
     public function userProduct()

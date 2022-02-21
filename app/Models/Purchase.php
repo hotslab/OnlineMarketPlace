@@ -13,14 +13,8 @@ class Purchase extends Model
 
     protected $fillable = [
         "email",
-        "user_id",
         "product_id"
     ];
-
-    public function user()
-    {
-        return $this->hasOne(User::class, "id", "user_id");
-    }
 
     public function product()
     {

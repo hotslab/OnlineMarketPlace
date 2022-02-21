@@ -16,8 +16,7 @@ class CreatePurchases extends Migration
         Schema::create('purchases', function (Blueprint $table) {
             $table->id();
             $table->string("email");
-            $table->foreignId("user_id")->references('id')->on('users')->nullable();
-            $table->foreignId("product_id")->references('id')->on('products')->nullable();
+            $table->foreignId("product_id")->references('id')->on('products');
             $table->timestamps();
         });
     }

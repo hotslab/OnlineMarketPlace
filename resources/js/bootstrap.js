@@ -15,6 +15,14 @@ try {
     console.log(e, "ERROR LOADING BOOTSTRAP")
 }
 
+try {
+    if (Stripe) require('./stripe')
+    console.log("STRIPE IS LOADED")
+} catch (e) {
+    console.log(e, "ERROR LOADING STRIPE")
+}
+
+
 
 /**
  * We'll load the axios HTTP library which allows us to easily issue requests

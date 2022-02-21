@@ -10,8 +10,8 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
-
 use App\Models\User;
+use App\Models\PasswordReset;
  
 class AuthenticateController extends Controller
 {
@@ -45,13 +45,35 @@ class AuthenticateController extends Controller
         ]);
         if ($newUser) {
             $status = $this->sendVerificationEmail($newUser);
-            return redirect()->route('login.view')->with(
-                'success', 
-                'Registration was successful. We have sent you an activation link to '.$newUser->email.', please check in all your folders for the link.'
-            );
+            if ($status['status'] == 200) {
+                return redirect()->route('login.view')->with(
+                    'success', 
+                    'Registration was successful. We have sent you an activation link to '.$newUser->email.', please check in all your folders for the link.'
+                );
+            } else {
+                return back()->with('failure', 'Verification email could not be sent to '.$newUser->email.' due to unkown error.');        
+            }
         } else {
             back()->with('failure', 'Profile could not be created. Please try again.');
         }
+    }
+
+    protected function sendVerificationEmail(User $user)
+    {
+        $response = Http::get('https://api.elasticemail.com/v2/email/send', [
+            'apikey' => env('ELASTIC_EMAIL_API'),
+            'subject' => 'Email verificaton for '.$user->name.' '.$user->surname,
+            'from' => env('ELASTIC_EMAIL_SENDER_ADDRESS'),
+            'to' => $user->email,
+            'bodyHtml' => 
+                '<div style="text-align:center; padding: 30px;">'.
+                    '<h2 style="color:#1E90FF;">Wecome to the OnlineStore</h2>'.
+                    '<p>Please verify your email by clicking the link below in order to activate your account. The you can start adding and selling products online:</p>'.
+                    '<a href="'.route('email.verify', ['id' => $user->id]).'" style="text-decoration: none;cursor: pointer;">Verify Email</a>'.
+                    '<p style="margin-top: 30px">&copy; OnlineStore 2022</p>'.
+                '</div>'
+        ]);
+        return ["status" => $response->status()];
     }
 
     public function logout(Request $request)
@@ -89,24 +111,6 @@ class AuthenticateController extends Controller
         return back()->with('success', 'Password reset successfully.');
     }
 
-    protected function sendVerificationEmail(User $user)
-    {
-        $response = Http::get('https://api.elasticemail.com/v2/email/send', [
-            'apikey' => env('ELASTIC_EMAIL_API'),
-            'subject' => 'Email verificaton for OnlineStore',
-            'from' => env('ELASTIC_EMAIL_SENDER_ADDRESS'),
-            'to' => $user->email,
-            'bodyHtml' => 
-                '<div style="text-align:center; padding: 30px;">'.
-                    '<h2 style="color:#1E90FF;">Wecome to the OnlineStore</h2>'.
-                    '<p>Please verify your email by clicking the link below in order to activate your account. The you can start adding and selling products online:</p>'.
-                    '<a href="'.route('email.verify', ['id' => $user->id]).'" style="text-decoration: none;cursor: pointer;">Verify Email</a>'.
-                    '<p style="margin-top: 30px">&copy; OnlineStore 2022</p>'.
-                '</div>'
-        ]);
-        return ["status" => $response->status()];
-    }
-
     public function verifyEmail($id)
     {
         User::find($id)->update(['email_verified_at' => date('Y-m-d H:i:s')]);
@@ -115,9 +119,7 @@ class AuthenticateController extends Controller
 
     public function passwordReset(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'password' => ['required', 'string', 'min:8', 'confirmed']
-        ]);
+        $validator = Validator::make($request->all(), ['email' => ['required', 'string', 'email', 'max:255']]);
         if ($validator->fails()) { return back()->withErrors($validator)->withInput(); } 
         $userExists = User::where('email', $request->input('email'))->first();
         if ($userExists) {
@@ -127,8 +129,12 @@ class AuthenticateController extends Controller
                 ['token' => $token]
             );
             if ($paswwordReset) {
-                $this->sendPasswordResetEmail($userExists, $token);
-                // redirct route here
+                $status = $this->sendPasswordResetEmail($userExists, $token);
+                if ($status['status'] == 200) {
+                    return redirect()->route('password.otp', ['id' => $userExists->id]);
+                } else {
+                    return back()->with('failure', 'Password reset token could not be sent to  '.$request->input('email').'. Please try again with a valid email.');        
+                }
             } else {
                 return back()->with('failure', 'No user with the email '.$request->input('email').' has been found. Please try again.');    
             }
@@ -141,7 +147,7 @@ class AuthenticateController extends Controller
     {
         $response = Http::get('https://api.elasticemail.com/v2/email/send', [
             'apikey' => env('ELASTIC_EMAIL_API'),
-            'subject' => 'Password reset for OnlineStore',
+            'subject' => 'Password reset for '.$user->name.' '.$user->surname,
             'from' => env('ELASTIC_EMAIL_SENDER_ADDRESS'),
             'to' => $user->email,
             'bodyHtml' => 
@@ -153,5 +159,32 @@ class AuthenticateController extends Controller
                 '</div>'
         ]);
         return ["status" => $response->status()];
+    }
+
+    public function otpScreen($id)
+    {
+        return View::make('auth.password.otp', ['user' => User::find($id)]);   
+    }
+
+    public function confirmPasswordReset(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'otp' => ['required', 'string', 'max:4']
+        ]);
+        if ($validator->fails()) { return back()->withErrors($validator)->withInput(); } 
+        $user = User::find($request->input("user_id"));
+        if ($user) {
+            $resetToken = PasswordReset::where("email", $user->email)->where("token", $request->input("otp"))->first();
+            if ($resetToken) {
+                $user->password = Hash::make($request->input('password'));
+                $user->save();
+                return redirect()->route('login.view')->with('success', 'The password for '.$user->email.' was successfully reset.');
+            } else {
+                return back()->with('failure', 'Reset token for '.$user->email.' not found due to unknown error. Please restart the password reset process.');           
+            }
+        } else {
+            return back()->with('failure', 'User with email address '.$user->email.' not found due to unknown error. Please restart the password reset process.');           
+        }
     }
 }

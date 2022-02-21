@@ -23,10 +23,10 @@ Route::get('register', function () { return view('auth.register'); })->name("reg
 Route::post('register', 'App\Http\Controllers\AuthenticateController@register')->name("register.post");
 Route::post('logout', 'App\Http\Controllers\AuthenticateController@logout')->name("logout");
 Route::get('email-verify/{id}', 'App\Http\Controllers\AuthenticateController@verifyEmail')->name("email.verify");
-Route::get('password/forgot', function () { return view('auth.password.forgot'); })->name("password.forgot");
-Route::post('password/reset', 'App\Http\Controllers\AuthenticateController@passwordReset')->name("password.reset");
-Route::get('password/otp', 'App\Http\Controllers\AuthenticateController@passwordOTP')->name("password.otp");
-Route::post('password/confirm', 'App\Http\Controllers\AuthenticateController@confirmPasswordReset')->name("password.confirm");
+Route::get('password-forgot', function () { return view('auth.password.forgot'); })->name("password.forgot");
+Route::post('password-reset', 'App\Http\Controllers\AuthenticateController@passwordReset')->name("password.reset");
+Route::get('password-otp/{id}', 'App\Http\Controllers\AuthenticateController@otpScreen')->name("password.otp");
+Route::post('password-confirm', 'App\Http\Controllers\AuthenticateController@confirmPasswordReset')->name("password.confirm");
 
 Route::middleware(['is_verified_email'])->group(function () {
     // Products
@@ -35,6 +35,7 @@ Route::middleware(['is_verified_email'])->group(function () {
 
     // Purchases
     Route::get('checkout/{id}', 'App\Http\Controllers\ProductController@checkout')->name("purchases.checkout");
+    Route::post('client', 'App\Http\Controllers\ProductController@clientToken')->name("purchases.client");
     Route::post('purchase', 'App\Http\Controllers\ProductController@purchase')->name("purchases.purchase");
     Route::get('confirmation/{id}', 'App\Http\Controllers\ProductController@confirmation')->name("purchases.confirmation");
 });

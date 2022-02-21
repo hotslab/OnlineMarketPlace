@@ -13,12 +13,18 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Http;
+USE Stripe;
 
 class ProductController extends Controller
 {
     public function index()
     {
-        $products = Product::orderBy("created_at", "DESC")->paginate(15);
+        $products = Product::from('products as p')
+        ->leftJoin('user_products as up', 'up.product_id', '=', 'p.id')
+        ->leftJoin('users as u', 'u.id', '=', 'up.user_id')
+        ->where(function ($query) {
+            if (Auth::user()) { $query->where('u.id', '<>', Auth::user()->id); }
+        })->select( DB::raw('p.*') )->orderBy("created_at", "DESC")->paginate(15);
         return View::make('products.products', ['products' => $products ]);
     }
 
@@ -59,7 +65,7 @@ class ProductController extends Controller
     public function show(Request $request, $id)
     {
         $product = Product::find($id);
-        return View::make('products.product', ['product' => $product, "origin" => $request->input("origin") ]);
+        return View::make('products.product', ['product' => $product ]);
     }
 
     public function update(Request $request, $id)
@@ -131,59 +137,76 @@ class ProductController extends Controller
             } else {
                 $query->where('u.id', '<>', $id)->where('pr.email', Auth::user()->email);
             }
-        })->select( DB::raw('p.*',), DB::raw('u.*',))->paginate(15);
+        })->select( 
+            DB::raw('p.*'), 
+            DB::raw('u.*'), 
+            DB::raw('pr.id as purchase_id'), 
+            DB::raw('pr.email as purchaser_email'),
+            DB::raw('up.id as user_product_id')
+        )->paginate(15);
         return View::make('purchases.purchases', ['type' => $request->input("type"), 'purchases' => $purchases ]);
     }
 
 
     public function checkout($id) 
     {
-        return View::make('purchases.checkout', ['product' => Product::find($id)]);
+        return View::make('purchases.stripe.checkout', ['product' => Product::find($id)]);
     }
 
 
-    public function purchase(Request $request) 
+    public function clientToken(Request $request) 
     {
-        $validator = Validator::make($request->all(), ['email' => ['required', 'string', 'email', 'max:255']]);
+        $validator = Validator::make($request->all(), [
+            'email' => ['required', 'string', 'email', 'max:255'],
+        ]);
         if ($validator->fails()) { 
             $errorMessage = "";
             foreach ($validator->errors()->get('email') as $message) { $errorMessage .= $message."\n\n"; }
             return response()->json([
                 'status' => 'failure',
-                'url' => route('purchases.checkout', ['id' => $request->input("productID")]),
+                'code' => 500,
                 'message' => $errorMessage
-            ]);
+            ], 500);
         } 
-        $purchase = Purchase::create([
-            "email" => $request->input("email"),
-            "product_id" => $request->input("productID"),
-            "user_id" => 1
-        ]);
-        if ($purchase) {
-            $this->sendPurchaseEmail($purchase);
-            return response()->json([
-                'status' => 'success',
-                'url' => route('purchases.confirmation', ['id' => $purchase->id]),
-                'message' => "Purchase was successful"
+        Stripe\Stripe::setApiKey(env('STRIPE_SECRET'));
+
+        try {
+            // Create a PaymentIntent with amount and currency
+            $paymentIntent = Stripe\PaymentIntent::create([
+                'amount' => $request->input("price") * 100,
+                'currency' => $request->input("currency"),
+                'automatic_payment_methods' => [
+                    'enabled' => true,
+                ],
             ]);
-        } else {
             return response()->json([
-                'status' => 'failure',
-                'url' => route('purchases.checkout', ['id' => $request->input("productID")]),
-                'message' => 'Purchase failed due to uknown error. Please try again.'
-            ]);
+                'clientSecret' => $paymentIntent->client_secret,
+                'code' => 200,
+                'status' => 'success'
+            ], 200);
+        } catch (Error $e) {
+            return response()->json([
+                "code" => 500,
+                'message' => $e->getMessage(),
+                'status' => 'error'
+            ], 500);
         }
+    }
+
+    public function purchase(Request $request) 
+    {
+        
     }
 
     public function confirmation($id) 
     {
-        return View::make('purchases.confirmation', ['purchase' => Purchase::find($id)]);
+        return View::make('purchases.stripe.confirmation', ['purchase' => Purchase::find($id)]);
     }
 
     protected function sendPurchaseEmail(Purchase $purchase) {
         $response = Http::get('https://api.elasticemail.com/v2/email/send', [
             'apikey' => env('ELASTIC_EMAIL_API'),
-            'subject' => 'New product purchased '.$purchase->product->name,
+            'subject' => 'New product purchased - '.$purchase->product->name,
             'from' => env('ELASTIC_EMAIL_SENDER_ADDRESS'),
             'to' => $purchase->email,
             'bodyHtml' => 
@@ -201,7 +224,7 @@ class ProductController extends Controller
                         '<tbody style="text-align: left;">'.
                             '<tr>'.
                                 '<td style="border:1px solid #ddd;padding: 8px;">'.$purchase->product->name.'</td>'.
-                                '<td style="border:1px solid #ddd;padding: 8px;">'.$purchase->product->price.'</td>'.
+                                '<td style="border:1px solid #ddd;padding: 8px;">'.$purchase->product->currency_symbol.' '.$purchase->product->price.'</td>'.
                                 '<td style="border:1px solid #ddd;padding: 8px;">1</td>'.
                             '</tr>'.
                         '</tbody>'.

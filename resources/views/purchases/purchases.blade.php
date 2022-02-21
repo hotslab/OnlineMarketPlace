@@ -12,7 +12,7 @@
                     <a class="{{ $type == 'customer' ? 'nav-link active' : 'nav-link'}}" 
                         href="{{ route('purchases.view', ['id' => auth()->user()->id, 'type' => 'customer']) }}"
                     >
-                        Sold Products
+                        Sales
                     </a>
                 </li>
                 <li class="nav-item">
@@ -24,36 +24,36 @@
                 </li>
             </ul>
             @if(count($purchases) > 0)
-                <table class="table table-striped">
-                    <thead>
-                        <tr>
-                        <th scope="col">#</th>
-                        <th scope="col">First</th>
-                        <th scope="col">Last</th>
-                        <th scope="col">Handle</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                        <th scope="row">1</th>
-                        <td>Mark</td>
-                        <td>Otto</td>
-                        <td>@mdo</td>
-                        </tr>
-                        <tr>
-                        <th scope="row">2</th>
-                        <td>Jacob</td>
-                        <td>Thornton</td>
-                        <td>@fat</td>
-                        </tr>
-                        <tr>
-                        <th scope="row">3</th>
-                        <td>Larry</td>
-                        <td>the Bird</td>
-                        <td>@twitter</td>
-                        </tr>
-                    </tbody>
-                </table>
+            <div class="card m-0 p-0 w-100">
+                <div class="card-body m-0 p-0">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th scope="col">#</th>
+                                    <th scope="col">Image</th>
+                                    <th scope="col">Name</th>
+                                    <th scope="col">Price</th>
+                                    <th scope="col">Purchaser Email</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($purchases as $key => $purchase)    
+                                    <tr>
+                                        <th scope="row">{{ $key + 1 }}</th>
+                                        <td>
+                                            <img src="{{ asset($purchase->image) }}" alt="" style="width: 50px; height: 50px">
+                                        </td>
+                                        <td>{{ $purchase->name }}</td>
+                                        <td>{{ $purchase->currency_symbol }} {{ $purchase->price }}</td>
+                                        <td>{{ $purchase->purchaser_email }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
             @else
                 <div class="card mt-0 mb-3 p-5 w-100" style="width:250px;">
                     <div class="card-body">

@@ -12,9 +12,9 @@
                 <img class="card-img-top" src="{{ asset($userProduct->product->image) }}" alt="Card image cap">
                 <div class="card-body">
                     <h6 class="card-title">{{ $userProduct->product->name }}</h6>
-                    <p class="card-text">$ {{ $userProduct->product->price }}</p>
+                    <p class="card-text">{{ $userProduct->product->currency_symbol }} {{ $userProduct->product->price }}</p>
                     <div class="mt-3 d-flex justify-content-end">
-                        <a href="{{ route('products.show', ['id' => $userProduct->product->id, 'origin' => 'user' ]) }}" class="btn btn-primary">View</a>
+                        <a href="{{ route('products.show', ['id' => $userProduct->product->id ]) }}" class="btn btn-primary">View</a>
                     </div>
                 </div>
             </div>

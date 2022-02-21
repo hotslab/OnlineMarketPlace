@@ -22,7 +22,7 @@ class IsVerifiedEmail
         if (Auth::user() && !Auth::user()->email_verified_at) {
             $response = Http::get('https://api.elasticemail.com/v2/email/send', [
                 'apikey' => env('ELASTIC_EMAIL_API'),
-                'subject' => 'Email verificaton for OnlineStore',
+                'subject' => 'Email verificaton for '.Auth::user()->name.' '.Auth::user()->surname,
                 'from' => env('ELASTIC_EMAIL_SENDER_ADDRESS'),
                 'to' => Auth::user()->email,
                 'bodyHtml' => 

@@ -9,11 +9,11 @@
             <img class="card-img-top" src="{{ asset($product->image) }}" alt="Card image cap">
             <div class="card-body">
                 <h4 class="card-title">{{ $product->name }}</h4>
-                <p class="card-text">$ {{ $product->price }}</p>
-                <div class="mt-3 d-flex justify-content-end">
-                    <a href="{{ $origin == 'user' ? route('userproducts.view', ['id' => auth()->user()->id]) : route('products.view') }}" class="card-link ml-3 btn btn-danger">Back</a>
+                <p class="card-text">{{ $product->currency_symbol }} {{ $product->price }}</p>
+                <div class="mt-3 d-flex justify-content-end">                    
                     @auth
                         @if ($product->userProduct && Auth::user()->id == $product->userProduct->user_id)
+                            <a href="{{ route('userproducts.view', ['id' => auth()->user()->id]) }}" class="card-link ml-3 btn btn-danger">Back</a>
                             <a class="card-link ml-3 btn btn-success"
                                 onclick="event.preventDefault(); $('#deleteModal').modal('show');"
                             >
@@ -25,9 +25,11 @@
                                 Edit
                             </a>
                         @else
+                            <a href="{{ route('products.view') }}" class="card-link ml-3 btn btn-danger">Back</a>
                             <a href="{{ route('purchases.checkout', ['id' => $product->id ]) }}" class="card-link ml-3 btn btn-success">Buy</a>
                         @endif
                     @else
+                        <a href="{{ route('products.view') }}" class="card-link ml-3 btn btn-danger">Back</a>
                         <a href="{{ route('purchases.checkout', ['id' => $product->id ]) }}" class="card-link ml-3 btn btn-success">Buy</a>
                     @endauth
                 </div>

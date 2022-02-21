@@ -15,8 +15,8 @@ class CreateUserProductsTable extends Migration
     {
         Schema::create('user_products', function (Blueprint $table) {
             $table->id();
-            $table->foreignId("user_id")->references('id')->on('users')->nullable();
-            $table->foreignId("product_id")->references('id')->on('products')->nullable();
+            $table->foreignId("user_id")->references('id')->on('users');
+            $table->foreignId("product_id")->references('id')->on('products');
             $table->timestamps();
         });
     }

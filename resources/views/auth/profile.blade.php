@@ -9,7 +9,7 @@
             </div>
         @endif
         <div class="text-bold mt-3 md-4">
-            <h5>Profile</h5>
+            <h5>Update Profile</h5>
         </div>
         <form id="update-user-form" class="mt-4" method="POST" action="{{ route('profile.update') }}">
             @csrf
@@ -35,7 +35,7 @@
                 @endforeach
             </div>
             <div class="form-group mt-3 d-flex justify-content-end">
-                <button type="submit" class="btn btn-primary">Update</button>
+                <button type="submit" class="btn btn-primary">Submit</button>
             </div>
         </form>
         <div class="text-bold mt-3 md-4">

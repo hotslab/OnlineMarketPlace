@@ -13,7 +13,7 @@
                     <a 
                         style="z-index: 0"
                         class="card-link ml-3 btn btn-danger"
-                        href="{{ route('products.show', ['id' => $product->id, 'origin' => 'customer' ]) }}"
+                        href="{{ route('products.show', ['id' => $product->id ]) }}"
                     >
                         Back
                     </a>
@@ -28,7 +28,8 @@
                             '{{ $product->id }}',
                             '{{ $product->price }}',
                             '{{ $product->name }}',
-                            '{{ $product->currency }}', 
+                            '{{ $product->currency }}',
+                            '{{ $product->currency_symbol }}' 
                         )"
                     >
                         Pay
@@ -42,7 +43,7 @@
             <img class="card-img-top" src="{{ asset($product->image) }}" alt="Card image cap">
             <div class="card-body">
                 <h5 class="card-text">{{ $product->name }}</h5>
-                <h3 class="card-text">$ {{ $product->price }}</h3>
+                <h3 class="card-text">{{ $product->currency_symbol }} {{ $product->price }}</h3>
             </div>
         </div>
         <div class="card p-3 m-3" style="width: 300px;">
@@ -103,12 +104,11 @@
 
 <script>
   let yoco = new window.YocoSDK({ publicKey: 'pk_test_ed3c54a6gOol69qa7f45'})
-  function purchaseProduct(url, productID, productPrice, productName, productCurrency) {
-    console.log("PARAMS", url, productID, productPrice, productName)
+  function purchaseProduct(url, productID, productPrice, productName, productCurrency, productCurrencySymbol) {
     yoco.showPopup({
       amountInCents: parseFloat(productPrice) * 100,
       currency: productCurrency,
-      name: `${productName} - $ ${productPrice}`,
+      name: `${productName} - ${productCurrencySymbol} ${productPrice}`,
       description: 'OnlineStore product',
       callback: function (result) {
         // This function returns a token that your server can use to capture a payment

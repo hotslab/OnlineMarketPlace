@@ -12,9 +12,9 @@
     <!-- Scripts -->
     <script src="{{ asset('js/app.js') }}" defer></script>
     @if (Route::current()->action['as'] == 'purchases.checkout')
-        <script src="https://js.yoco.com/sdk/v1/yoco-sdk-web.js"></script>
-        <!-- Include the PayPal JavaScript SDK; replace "test" with your own sandbox Business account app client ID -->
-        {{-- <script src="https://www.paypal.com/sdk/js?client-id=AbxaAV4Io0LVyn-oaYt_nwWiqSv1Um2PxnOi8Lgdgyv5QkI0bXJxOsxGZwh97DRdYuOUN4SJUiAkyBS6&currency=USD"></script> --}}
+        {{-- <script src="https://js.yoco.com/sdk/v1/yoco-sdk-web.js"></script> --}}
+        <script src="https://js.stripe.com/v3/"></script>
+        <script src="https://polyfill.io/v3/polyfill.min.js?version=3.52.1&features=fetch"></script>
     @endif
 
     <!-- Fonts -->
@@ -23,6 +23,9 @@
 
     <!-- Styles -->
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
+    @if (Route::current()->action['as'] == 'purchases.checkout')    
+        <link href="{{ asset('css/stripe.css') }}" rel="stylesheet">
+    @endif
 </head>
 <body>
     <div id="app">

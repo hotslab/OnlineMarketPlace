@@ -161,26 +161,48 @@ class ProductController extends Controller
         ]);
         if ($validator->fails()) { 
             $errorMessage = "";
-            foreach ($validator->errors()->get('email') as $message) { $errorMessage .= $message."\n\n"; }
+            foreach ($validator->errors()->get('email') as $key => $message) { $errorMessage .= ($key + 1).". ".$message." "; }
             return response()->json([
                 'status' => 'failure',
                 'code' => 500,
                 'message' => $errorMessage
             ], 500);
         } 
-        Stripe\Stripe::setApiKey(env('STRIPE_SECRET'));
-
         try {
-            // Create a PaymentIntent with amount and currency
-            $paymentIntent = Stripe\PaymentIntent::create([
-                'amount' => $request->input("price") * 100,
-                'currency' => $request->input("currency"),
-                'automatic_payment_methods' => [
-                    'enabled' => true,
-                ],
-            ]);
+            $stripe = new Stripe\StripeClient(env('STRIPE_SECRET'));
+            $customer = null;
+            $customers = $stripe->customers->all(['email' => $request->input('email')]);
+            $customer = collect($customers->data)->first();
+            if (!$customer) {
+                $customer = $stripe->customers->create([
+                    'email' => $request->input('email')
+                ]);
+            }
+            $paymentIntent = null;
+            $paymentIntents = $stripe->paymentIntents->all(['customer' => $customer->id]);
+            $paymentIntent = collect($paymentIntents->data)->first();
+            if (!$paymentIntent) {
+                $paymentIntent = $stripe->paymentIntents->create([
+                    'customer' => $customer->id, 
+                    'setup_future_usage' => 'off_session',
+                    'amount' => $request->input('price'),
+                    'currency' => strtolower($request->input('currency')),
+                    'receipt_email' => $request->input('email'),
+                    'description' => "{$request->input('productName')} - {$request->input('currencySymbol')} {$request->input('price')}",
+                    'metadata' => [
+                        'product_id'  => $request->input('productID'),
+                        'product_name' => $request->input('productName'),
+                        'product_price' => $request->input('price'),
+                        'product_currency' => $request->input('currencySymbol'),
+                        'customer_email' => $request->input('email')
+                    ],
+                    'automatic_payment_methods' => ['enabled' => true ],
+                ]);
+            }
             return response()->json([
                 'clientSecret' => $paymentIntent->client_secret,
+                'customer' => $customer,
+                'paymentIntent' => $paymentIntent,
                 'code' => 200,
                 'status' => 'success'
             ], 200);
@@ -195,15 +217,29 @@ class ProductController extends Controller
 
     public function purchase(Request $request) 
     {
-        
+        $purchase = Purchase::create([
+            "product_id" =>  $request->input("productID"),
+            "email" => $request->input("email"),
+            "paid_amount" => $request->input("paidAmount")
+        ]);
+        if ($purchase) {
+            $this->sendPurchaseEmail($purchase, $request->input("paidAmount"), $request->input('isDeposit'));
+            return response()->json([
+                'clientSecret' => $paymentIntent->client_secret,
+                'customer' => $customer,
+                'paymentIntent' => $paymentIntent,
+                'code' => 200,
+                'status' => 'success'
+            ], 200);
+        }
     }
 
-    public function confirmation($id) 
+    public function confirmation(Request $request) 
     {
-        return View::make('purchases.stripe.confirmation', ['purchase' => Purchase::find($id)]);
+        return View::make('purchases.stripe.confirmation', ['purchase' => Purchase::find($request->input("purchase_id"))]);
     }
 
-    protected function sendPurchaseEmail(Purchase $purchase) {
+    protected function sendPurchaseEmail(Purchase $purchase, $paidAmount, $isDeposit) {
         $response = Http::get('https://api.elasticemail.com/v2/email/send', [
             'apikey' => env('ELASTIC_EMAIL_API'),
             'subject' => 'New product purchased - '.$purchase->product->name,
@@ -217,20 +253,25 @@ class ProductController extends Controller
                         '<thead style="padding-top: 12px;padding-bottom: 12px;text-align: left;background-color: #1E90FF;color: white;">'.
                             '<tr>'.
                                 '<th style="border:1px solid #ddd;padding: 8px;">Name</th>'.
-                                '<th style="border:1px solid #ddd;padding: 8px;">Price</th>'.
+                                '<th style="border:1px solid #ddd;padding: 8px;">Full Price</th>'.
+                                '<th style="border:1px solid #ddd;padding: 8px;">Paid Amount</th>'.
                                 '<th style="border:1px solid #ddd;padding: 8px;">Quantity (Units)</th>'.
+                                '<th style="border:1px solid #ddd;padding: 8px;">Deposit Payment</th>'.
                             '</tr>'.
                         '</thead>'.
                         '<tbody style="text-align: left;">'.
                             '<tr>'.
-                                '<td style="border:1px solid #ddd;padding: 8px;">'.$purchase->product->name.'</td>'.
-                                '<td style="border:1px solid #ddd;padding: 8px;">'.$purchase->product->currency_symbol.' '.$purchase->product->price.'</td>'.
+                                '<td style="border:1px solid #ddd;padding: 8px;">{$purchase->product->name}</td>'.
+                                '<td style="border:1px solid #ddd;padding: 8px;">{$purchase->product->currency_symbol} {$purchase->product->price}</td>'.
+                                '<td style="border:1px solid #ddd;padding: 8px;">{$purchase->product->currency_symbol} {$paidAmount}</td>'.
                                 '<td style="border:1px solid #ddd;padding: 8px;">1</td>'.
+                                '<td style="border:1px solid #ddd;padding: 8px;">{$isDeposit}</td>'.
                             '</tr>'.
                         '</tbody>'.
                     '</table>'.
                     '<p style="margin-top: 30px">&copy; OnlineStore 2022</p>'.
                 '</div>'
         ]);
+        return ["status" => $response->status()];
     }
 }

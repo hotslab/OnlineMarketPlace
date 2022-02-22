@@ -37,7 +37,7 @@ Route::middleware(['is_verified_email'])->group(function () {
     Route::get('checkout/{id}', 'App\Http\Controllers\ProductController@checkout')->name("purchases.checkout");
     Route::post('client', 'App\Http\Controllers\ProductController@clientToken')->name("purchases.client");
     Route::post('purchase', 'App\Http\Controllers\ProductController@purchase')->name("purchases.purchase");
-    Route::get('confirmation/{id}', 'App\Http\Controllers\ProductController@confirmation')->name("purchases.confirmation");
+    Route::get('confirmation', 'App\Http\Controllers\ProductController@confirmation')->name("purchases.confirmation");
 });
 
 Route::middleware(['auth', 'is_verified_email'])->group(function () {

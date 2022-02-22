@@ -24,10 +24,10 @@
                         Back
                     </a>
                 </div>
-                <input name="purchaser_email" type="email" class="form-control" id="purchaser_email" aria-describedby="emailHelp" placeholder="Enter email" value="{{ auth()->user() ? auth()->user()->email :  old('purchaser_email') }}">
+                <input name="purchaser_email" type="email" class="form-control" id="purchaser_email" aria-describedby="emailHelp" placeholder="Enter purchase email" value="{{ auth()->user() ? auth()->user()->email :  old('purchaser_email') }}">
                 <div class="input-group-append">
                     <a style="z-index: 0" id="getClientToken" class="card-link ml-3 btn btn-success">
-                        Pay
+                        Submit
                     </a>
                 </div>
             </div>

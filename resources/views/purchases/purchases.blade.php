@@ -34,7 +34,9 @@
                                     <th scope="col">Image</th>
                                     <th scope="col">Name</th>
                                     <th scope="col">Price</th>
+                                    <th scope="col">Paid Amount</th>
                                     <th scope="col">Purchaser Email</th>
+                                    <th scope="col">Deposit Payments</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -44,9 +46,11 @@
                                         <td>
                                             <img src="{{ asset($purchase->image) }}" alt="" style="width: 50px; height: 50px">
                                         </td>
-                                        <td>{{ $purchase->name }}</td>
+                                        <td>{{ $purchase->product_name }}</td>
                                         <td>{{ $purchase->currency_symbol }} {{ $purchase->price }}</td>
+                                        <td>{{ $purchase->currency_symbol }} {{ $purchase->paid_amount }}</td>
                                         <td>{{ $purchase->purchaser_email }}</td>
+                                        <td>{{ $purchase->is_deposit }}</td>
                                     </tr>
                                 @endforeach
                             </tbody>

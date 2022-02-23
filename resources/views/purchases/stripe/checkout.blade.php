@@ -56,15 +56,12 @@
             <div class="card m-3 p-2">
                 <div class="card-body text-center">
                     <p class="card-text">You have a saved payment method associated with your selected email. Please click the <span class="text-primary">Pay</span> button to continue buying</p>
-                    <h5 class="text-primary">{{ $product->name }} - {{ $product->currency }} {{ $product->price }}</h5>
+                    <h5 class="text-primary">{{ $product->name }} - {{ $product->currency_symbol }} {{ $product->price }}</h5>
                     <div class="form-group mt-3 d-flex justify-content-between align-items-center">
                         <a style="z-index: 0" href="{{ route('products.show', ['id' => $product->id ]) }}" class="card-link ml-3 btn btn-danger">
                             Cancel
                         </a>
-                        <button type="submit" id="capturePayment" class="btn btn-success">Pay</button>
-                        {{-- <a style="z-index: 0" id="capturePayment" class="card-link ml-3 btn btn-success">
-                            Pay
-                        </a> --}}
+                        <button type="submit" id="captureSavedPayment" class="btn btn-success">Pay</button>
                     </div>
                 </div>
             </div>

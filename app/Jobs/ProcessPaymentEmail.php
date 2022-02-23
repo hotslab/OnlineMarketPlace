@@ -9,22 +9,30 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use App\Models\Purchase;
+
 
 class ProcessPaymentEmail implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+
+    protected $purchaseID;
+    protected $paidAmount;
+    protected $isDeposit;
+    protected $secondDeposit;
 
     /**
      * Create a new job instance.
      *
      * @return void
      */
-    public function __construct(int $purchaseID, float $paidAmount, bool $isDeposit)
+    public function __construct(int $purchaseID, float $paidAmount, bool $isDeposit, bool $secondDeposit)
     {
         $this->purchaseID = $purchaseID;
         $this->paidAmount = $paidAmount;
         $this->isDeposit = $isDeposit;
+        $this->secondDeposit = $secondDeposit;
     }
 
     /**
@@ -37,7 +45,7 @@ class ProcessPaymentEmail implements ShouldQueue
         $purchase = Purchase::find($this->purchaseID);
         $subject = 'New product purchased: '.$purchase->product->name.' - '.$purchase->product->currency_symbol.' '.$this->paidAmount;
         if ($this->isDeposit) {
-            $subject = 'Deposit payment for product purchased: '.$purchase->product->name.' - '.$purchase->product->currency_symbol.' '.$this->paidAmount;
+            $subject = ($this->secondDeposit ? 'Final' : 'First' ).' deposit payment for product purchased: '.$purchase->product->name.' - '.$purchase->product->currency_symbol.' '.$this->paidAmount;
         }
         Http::get('https://api.elasticemail.com/v2/email/send', [
             'apikey' => env('ELASTIC_EMAIL_API'),
@@ -64,7 +72,7 @@ class ProcessPaymentEmail implements ShouldQueue
                                 '<td style="border:1px solid #ddd;padding: 8px;">'.$purchase->product->currency_symbol.' '.$purchase->product->price.'</td>'.
                                 '<td style="border:1px solid #ddd;padding: 8px;">'.$purchase->product->currency_symbol.' '.$this->paidAmount.'</td>'.
                                 '<td style="border:1px solid #ddd;padding: 8px;">1</td>'.
-                                '<td style="border:1px solid #ddd;padding: 8px;">'.$this->isDeposit ? 'true' : 'false' .'</td>'.
+                                '<td style="border:1px solid #ddd;padding: 8px;">'.($this->isDeposit ? 'true' : 'false').'</td>'.
                             '</tr>'.
                         '</tbody>'.
                     '</table>'.

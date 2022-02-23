@@ -71,8 +71,17 @@ async function getClientToken() {
     })
 }
 
-$('#capturePayment').click(async event => {
+$('#captureUnsavedPayment').click(async event => {
+    event.preventDefault(); 
+    await capturePayment()
+})
+
+$('#captureSavedPayment').click(async event => {
     event.preventDefault();
+    await capturePayment()
+})
+
+async function capturePayment() {
     hasSavedDetails ? $('#stripeSavedPaymentForm').hide() : $('#stripePaymentForm').hide()
     $('#spinnerDisplay').show()
     $.ajax({
@@ -94,7 +103,7 @@ $('#capturePayment').click(async event => {
             showMessage(error?.message || error, 'error')
         }
     })
-})
+}
 
 async function confirmPayment(redirectURL, deleteURL) {
     if (hasSavedDetails) {

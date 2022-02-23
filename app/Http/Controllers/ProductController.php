@@ -138,11 +138,16 @@ class ProductController extends Controller
                 $query->where('u.id', '<>', $id)->where('pr.email', Auth::user()->email);
             }
         })->select( 
-            DB::raw('p.*'), 
+            'p.image',
+            'p.name as product_name',
+            'p.price',
+            'p.currency',
+            'p.currency_symbol',
             DB::raw('u.*'), 
-            DB::raw('pr.id as purchase_id'), 
-            DB::raw('pr.email as purchaser_email'),
-            DB::raw('up.id as user_product_id')
+            'pr.id as purchase_id', 
+            'pr.email as purchaser_email',
+            'pr.paid_amount',
+            'up.id as user_product_id'
         )->paginate(15);
         return View::make('purchases.purchases', ['type' => $request->input("type"), 'purchases' => $purchases ]);
     }
@@ -244,15 +249,17 @@ class ProductController extends Controller
     public function confirmation($id) 
     {
         $purchase = Purchase::find($id);
-        $isDeposit = $purchase->product->price > $purchase->paid_amount ? true : false;
-        $paidAmount = $purchase->paid_amount;
-        ProcessStripePaymentIntent::dispatchAfterResponse($purchase->id, $paidAmount, $isDeposit, false);
+        $isDeposit = ($purchase->product->price * 100) > ($purchase->paid_amount * 100) ? true : false;
+        $depositLeftAmount = null;
+        ProcessStripePaymentIntent::dispatchAfterResponse($purchase->id, $purchase->paid_amount, $isDeposit, false);
         if ($isDeposit) {
-            $paidAmount = $purchase->product->price - $purchase->paid_amount;
-            ProcessStripePaymentIntent::dispatchAfterResponse($purchase->id, $paidAmount, $isDeposit, true)
+            $depositLeftAmount = $purchase->product->price - $purchase->paid_amount;
+            ProcessStripePaymentIntent::dispatch($purchase->id, $depositLeftAmount, $isDeposit, true)
             ->delay(now()->addMinutes(5));
         }
-        return View::make('purchases.stripe.confirmation', ['purchase' => $purchase]);
+        return View::make('purchases.stripe.confirmation', [
+            'purchase' => $purchase, 'isDeposit' => $isDeposit, 'paidAmount' => $purchase->paid_amount, 'depositLeftAmount' => $depositLeftAmount
+        ]);
     }
 
     public function destroyPurchase($id) 

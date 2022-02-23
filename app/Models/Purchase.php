@@ -14,7 +14,8 @@ class Purchase extends Model
     protected $fillable = [
         "email",
         "product_id",
-        "paid_amount"
+        "paid_amount",
+        "is_deposit"
     ];
 
     public function product()

@@ -16,6 +16,10 @@ class ProcessStripePaymentIntent implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
+    protected $purchaseID;
+    protected $amount;
+    protected $isDeposit;
+    protected $secondDeposit;
     /**
      * Create a new job instance.
      *
@@ -65,6 +69,6 @@ class ProcessStripePaymentIntent implements ShouldQueue
             $purchase->paid_amount = $purchase->paid_amount + $this->amount;
             $purchase->save();
         }
-        ProcessPaymentEmail::dispatch($purchase->id, $this->amount, $isDeposit);
+        ProcessPaymentEmail::dispatch($purchase->id, $this->amount, $this->isDeposit, $this->secondDeposit);
     }
 }

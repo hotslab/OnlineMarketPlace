@@ -12,8 +12,8 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
-use Illuminate\Support\Facades\Http;
-USE Stripe;
+use App\Jobs\ProcessStripePaymentIntent;
+use Stripe;
 
 class ProductController extends Controller
 {
@@ -178,34 +178,43 @@ class ProductController extends Controller
                     'email' => $request->input('email')
                 ]);
             }
-            $paymentIntent = null;
-            $paymentIntents = $stripe->paymentIntents->all(['customer' => $customer->id]);
-            $paymentIntent = collect($paymentIntents->data)->first();
-            if (!$paymentIntent) {
-                $paymentIntent = $stripe->paymentIntents->create([
+            $setupIntent = null;
+            $setupIntents = $stripe->setupIntents->all(['customer' => $customer->id ]);
+            $setupIntent = collect($setupIntents->data)->filter(function($intent) { return $intent->status == 'succeeded'; })->first();
+            if (!$setupIntent) {
+                $setupIntent = $stripe->setupIntents->create([
                     'customer' => $customer->id, 
-                    'setup_future_usage' => 'off_session',
-                    'amount' => $request->input('price'),
-                    'currency' => strtolower($request->input('currency')),
-                    'receipt_email' => $request->input('email'),
-                    'description' => "{$request->input('productName')} - {$request->input('currencySymbol')} {$request->input('price')}",
-                    'metadata' => [
-                        'product_id'  => $request->input('productID'),
-                        'product_name' => $request->input('productName'),
-                        'product_price' => $request->input('price'),
-                        'product_currency' => $request->input('currencySymbol'),
-                        'customer_email' => $request->input('email')
-                    ],
-                    'automatic_payment_methods' => ['enabled' => true ],
+                    'payment_method_types' => ['card'],
+                    'description' => 'Card payment details for '.$request->input('email'),
+                    'metadata'=> ['customer_email' => $request->input('email')],
+                    'usage' => 'off_session'
                 ]);
+                if ($setupIntent) {
+                    return response()->json([
+                        'hasSavedDetails' => false,
+                        'clientSecret' => $setupIntent->client_secret,
+                        'customer' => $customer,
+                        'setupIntent' => $setupIntent,
+                        'code' => 200,
+                        'status' => 'success'
+                    ], 200);
+                } else {
+                    return response()->json([
+                        "code" => 500,
+                        'message' => 'Payment setup could not be completed due to an unknow error. Please try again or contact support.',
+                        'status' => 'error'
+                    ], 500);
+                }
+            } else {
+                return response()->json([
+                    'hasSavedDetails' => true,
+                    'clientSecret' => $setupIntent->client_secret,
+                    'customer' => $customer,
+                    'setupIntent' => $setupIntent,
+                    'code' => 200,
+                    'status' => 'success'
+                ], 200);
             }
-            return response()->json([
-                'clientSecret' => $paymentIntent->client_secret,
-                'customer' => $customer,
-                'paymentIntent' => $paymentIntent,
-                'code' => 200,
-                'status' => 'success'
-            ], 200);
         } catch (Error $e) {
             return response()->json([
                 "code" => 500,
@@ -223,55 +232,31 @@ class ProductController extends Controller
             "paid_amount" => $request->input("paidAmount")
         ]);
         if ($purchase) {
-            $this->sendPurchaseEmail($purchase, $request->input("paidAmount"), $request->input('isDeposit'));
             return response()->json([
-                'clientSecret' => $paymentIntent->client_secret,
-                'customer' => $customer,
-                'paymentIntent' => $paymentIntent,
+                'redirectURL' => route('purchases.confirmation', ['id' => $purchase->id]),
+                'deleteURL' => route('purchases.delete', ['id' => $purchase->id]), 
                 'code' => 200,
                 'status' => 'success'
             ], 200);
         }
     }
 
-    public function confirmation(Request $request) 
+    public function confirmation($id) 
     {
-        return View::make('purchases.stripe.confirmation', ['purchase' => Purchase::find($request->input("purchase_id"))]);
+        $purchase = Purchase::find($id);
+        $isDeposit = $purchase->product->price > $purchase->paid_amount ? true : false;
+        $paidAmount = $purchase->paid_amount;
+        ProcessStripePaymentIntent::dispatchAfterResponse($purchase->id, $paidAmount, $isDeposit, false);
+        if ($isDeposit) {
+            $paidAmount = $purchase->product->price - $purchase->paid_amount;
+            ProcessStripePaymentIntent::dispatchAfterResponse($purchase->id, $paidAmount, $isDeposit, true)
+            ->delay(now()->addMinutes(5));
+        }
+        return View::make('purchases.stripe.confirmation', ['purchase' => $purchase]);
     }
 
-    protected function sendPurchaseEmail(Purchase $purchase, $paidAmount, $isDeposit) {
-        $response = Http::get('https://api.elasticemail.com/v2/email/send', [
-            'apikey' => env('ELASTIC_EMAIL_API'),
-            'subject' => 'New product purchased - '.$purchase->product->name,
-            'from' => env('ELASTIC_EMAIL_SENDER_ADDRESS'),
-            'to' => $purchase->email,
-            'bodyHtml' => 
-                '<div style="text-align:center; padding: 30px;">'.
-                    '<h2 style="color:#1E90FF;">Thank you for shopping at the OnlineStore</h2>'.
-                    '<p>You have successfully purchased the following product at our online store:</p>'.
-                    '<table style="font-family: Arial, Helvetica, sans-serif;border-collapse: collapse;width: 100%; margin-top: 20px;">'.
-                        '<thead style="padding-top: 12px;padding-bottom: 12px;text-align: left;background-color: #1E90FF;color: white;">'.
-                            '<tr>'.
-                                '<th style="border:1px solid #ddd;padding: 8px;">Name</th>'.
-                                '<th style="border:1px solid #ddd;padding: 8px;">Full Price</th>'.
-                                '<th style="border:1px solid #ddd;padding: 8px;">Paid Amount</th>'.
-                                '<th style="border:1px solid #ddd;padding: 8px;">Quantity (Units)</th>'.
-                                '<th style="border:1px solid #ddd;padding: 8px;">Deposit Payment</th>'.
-                            '</tr>'.
-                        '</thead>'.
-                        '<tbody style="text-align: left;">'.
-                            '<tr>'.
-                                '<td style="border:1px solid #ddd;padding: 8px;">{$purchase->product->name}</td>'.
-                                '<td style="border:1px solid #ddd;padding: 8px;">{$purchase->product->currency_symbol} {$purchase->product->price}</td>'.
-                                '<td style="border:1px solid #ddd;padding: 8px;">{$purchase->product->currency_symbol} {$paidAmount}</td>'.
-                                '<td style="border:1px solid #ddd;padding: 8px;">1</td>'.
-                                '<td style="border:1px solid #ddd;padding: 8px;">{$isDeposit}</td>'.
-                            '</tr>'.
-                        '</tbody>'.
-                    '</table>'.
-                    '<p style="margin-top: 30px">&copy; OnlineStore 2022</p>'.
-                '</div>'
-        ]);
-        return ["status" => $response->status()];
+    public function destroyPurchase($id) 
+    {
+        Purchase::destroy($id);
     }
 }

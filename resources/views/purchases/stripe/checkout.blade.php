@@ -3,7 +3,7 @@
 @section('content')
 <div class="container">
     <div id="errorAlert" class="alert alert-danger" style="display: none;" role="alert"></div>
-    <div id="successAlert" class="alert alert-danger" style="display: none;" role="alert"></div>
+    <div id="successAlert" class="alert alert-success" style="display: none;" role="alert"></div>
     <div class="text-bold mt-3 md-4">
         <h5>Checkout</h5>
     </div>
@@ -16,20 +16,20 @@
         <div class="col-md-6">
             <div class="input-group">
                 <div class="input-group-append">
-                    <a 
-                        style="z-index: 0"
+                    <a style="z-index: 0"
                         class="card-link ml-3 btn btn-danger"
                         href="{{ route('products.show', ['id' => $product->id ]) }}"
                     >
                         Back
                     </a>
                 </div>
-                <input name="purchaser_email" type="email" class="form-control" id="purchaser_email" aria-describedby="emailHelp" placeholder="Enter purchase email" value="{{ auth()->user() ? auth()->user()->email :  old('purchaser_email') }}">
-                <div class="input-group-append">
-                    <a style="z-index: 0" id="getClientToken" class="card-link ml-3 btn btn-success">
-                        Submit
-                    </a>
-                </div>
+                <input name="purchaser_email" type="email" class="form-control" id="purchaser_email" aria-describedby="emailHelp" placeholder="Enter your purchase email" value="{{ auth()->user() ? auth()->user()->email :  old('purchaser_email') }}">
+                <a style="z-index: 0"
+                    class="card-link ml-3 btn btn-success"
+                    onclick="event.preventDefault(); $('#paymentModal').modal('show');"
+                >
+                    Submit
+                </a>
             </div>
         </div>
     </div>
@@ -40,7 +40,10 @@
                     <!--Stripe.js injects the Payment Element-->
                 </div>
                 <div class="form-group mt-3 d-flex justify-content-between align-items-center">
-                    <a style="z-index: 0" id="capturePayment" class="card-link ml-3 btn btn-success">
+                    <a style="z-index: 0" href="{{ route('products.show', ['id' => $product->id ]) }}" class="card-link ml-3 btn btn-danger">
+                        Cancel
+                    </a>
+                    <a style="z-index: 0" id="captureUnsavedPayment" class="card-link ml-3 btn btn-success">
                         Pay
                     </a>
                 </div>
@@ -48,22 +51,26 @@
             </form>
         </div>
     </div>
-    <div class="row justify-content-center">
-        <div class="card p-3 m-3" style="width: 300px;">
-            <img class="card-img-top" src="{{ asset($product->image) }}" alt="Card image cap">
-            <div class="card-body">
-                <h5 id="productName" class="card-text">{{ $product->name }}</h5>
-                <h3 class="card-text">
-                    <span id="productCurrencySymbol">{{ $product->currency_symbol }}</span> 
-                    <span id="productPrice">{{ $product->price }}</span>
-                </h3>
-                <span hidden id="productID">{{ $product->id}}</span>
-                <span hidden id="productCurrency">{{ $product->currency}}</span>
-                <span hidden id="clientRoute">{{ route('purchases.client') }}</span>
-                <span hidden id="purchaseRoute">{{ route('purchases.purchase') }}</span>
-                <span hidden id="confirmationRoute">{{ route('purchases.confirmation') }}</span>
+    <div id="stripeSavedPaymentForm" class="row justify-content-center">
+        <div class="col-md-6 d-flex justify-content-center">
+            <div class="card m-3 p-2">
+                <div class="card-body text-center">
+                    <p class="card-text">You have a saved payment method associated with your selected email. Please click the <span class="text-primary">Pay</span> button to continue buying</p>
+                    <h5 class="text-primary">{{ $product->name }} - {{ $product->currency }} {{ $product->price }}</h5>
+                    <div class="form-group mt-3 d-flex justify-content-between align-items-center">
+                        <a style="z-index: 0" href="{{ route('products.show', ['id' => $product->id ]) }}" class="card-link ml-3 btn btn-danger">
+                            Cancel
+                        </a>
+                        <button type="submit" id="capturePayment" class="btn btn-success">Pay</button>
+                        {{-- <a style="z-index: 0" id="capturePayment" class="card-link ml-3 btn btn-success">
+                            Pay
+                        </a> --}}
+                    </div>
+                </div>
             </div>
         </div>
+    </div>
+    <div class="row justify-content-center">
         <div class="card p-3 m-3" style="width: 300px;">
             <img class="card-img-top"
                 src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAlgAAAGQCAYAAAByNR6YAAAVnnpUWHRSYXcgcHJvZmlsZSB0eXBlIGV4aWYAAHjarZpndiQ7coX/YxVaQgKIgFkO7DnagZav72axW+3ezBvNkE1mdVUaIMw1AMP5n/++4b/4coslmNdWeikPX9atp8GL9ny+xvs7Pvb+fr+8Penr3Z/eD/3by8Qxc8yfD1r5HOO3978u+HaMg1f+w43a+vpg/vxBt88xtV9u9BnPkzUivd7fRvR1o5w+H8SvG4zPtJ7SW/1xCvN8jl/Xf8LAT9Avaz8P+7f/V6K3nefklE6O+eF3yukzgKyfGPLgReN3zISD33ptOfM75f51MwLypzg9P4wq/JqV769+ycq3qf6alFw+ZwTe+DmY5fvxj+9H/+X9rxuGN8Q/PDmv7+Xw0/unxPzrdL793LtbuPd8ZjesENLyNalvU3xfceIk5Pm9rPBd+XFe1/e7890C1btI+X7WM/lescfEs2+0uOOIN573uOJiiJZOqhxTWiRK77VcU08rP4E8mb7jTTX3vMlayov0Zt5N38cS3+f293ErNh68I2emyM2iSiHo13/i+y9vdK9KPkYFc4w3VowrqQgZhjKn35xFQuL9Vkf+Bvjb969fymsmg/6GuTHB8czPLabHr9pSHeU30ZkTneOn12LdXzcgRDzbGQy1b/GhDDyW+NSUaozEsZGfwY1aypYmKYjuaTPKRIMUktOSns01Nb7nJk+ft8EsEuG55Epqeh7kygA26qdao4aGZzd3L169efdRcrHipZRaBH6j5mrVa6m1ttrraLlZ81ZabS203kZPPQOO3kuvvfXex+ChgzsPrh6cMMZMM0+bPsuss80+x6J8li1fZdXVwupr7LTzBid22XW33fc48VBKx46fcuppp59xKbWbr12/5dbbbr/je9Zi+KT1t++/n7X4LWvpzZROrN+zxqW1frtFFJy4ckbGkkUyXpUBCjopZ0+LZikodcrZ0xNd4YlRupKzozJGBu3E5Dd+z93/Ze6nvAWzfytv6VvmglL3n8hcUOr+InO/5+0PWduC4PXk8GZIbaigPpn223afXFscPCz7gI/T
@@ -114,6 +121,51 @@
                     <span class="card-text mb-2">1. Enter the email address above for purchasing with.</span>
                     <span class="card-text mb-2">2. Use the card details above to fill in in the payment pop up.</span>
                     <span class="card-text mb-2">3. Press the pay button to purchase the product.</span>
+                </div>
+            </div>
+        </div>
+        <div class="card p-3 m-3" style="width: 300px;">
+            <img class="card-img-top" src="{{ asset($product->image) }}" alt="Card image cap">
+            <div class="card-body">
+                <h5 id="productName" class="card-text">{{ $product->name }}</h5>
+                <h3 class="card-text">
+                    <span id="productCurrencySymbol">{{ $product->currency_symbol }}</span> 
+                    <span id="productPrice">{{ $product->price }}</span>
+                </h3>
+                <span hidden id="productID">{{ $product->id}}</span>
+                <span hidden id="productCurrency">{{ $product->currency }}</span>
+                <span hidden id="clientRoute">{{ route('purchases.client') }}</span>
+                <span hidden id="purchaseRoute">{{ route('purchases.purchase') }}</span>
+            </div>
+        </div>
+    </div>
+    <!-- Modal -->
+    <div id="paymentModal" class="modal bd-example-modal-md" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-md">
+            <div class="modal-content p-4">
+                <div class="">
+                    <h4 class="mb-3">
+                        Purchase <span class="text-primary">{{ $product->name }} - {{ $product->currency_symbol }} {{ $product->price }}</span> ?
+                    </h4>
+                    <h5>1. Deposit Payment</h5>
+                    <p>Pay a deposit of <span class="text-primary">{{ $product->currency_symbol }} {{ round(floatval($product->price)/2, 2) }}</span> now and the balance will be charged automatically 5 minutes later.</p>
+                    <h5>2. Full Payment</h5>
+                    <p>Pay the full one time amount of <span class="text-primary">{{ $product->currency_symbol }} {{ $product->price }}</span>.</p>
+                </div>
+                <div class="mt-3 d-flex justify-content-between">
+                    <a class="card-link ml-3 btn btn-danger"
+                        onclick="event.preventDefault(); $('#paymentModal').modal('hide');"
+                    >
+                        Cancel
+                    </a>
+                    <a id="depositPayment" class="card-link ml-3 btn btn-success"
+                        onclick="event.preventDefault(); $('#deleteModal').modal('hide');"
+                    >
+                        Deposit Payment
+                    </a>
+                    <a id="fullPayment" class="card-link ml-3 btn btn-success">
+                        Full Payment
+                    </a>
                 </div>
             </div>
         </div>

@@ -11,8 +11,7 @@
 
     <!-- Scripts -->
     <script src="{{ asset('js/app.js') }}" defer></script>
-    @if (Route::current()->action['as'] == 'purchases.checkout')
-        {{-- <script src="https://js.yoco.com/sdk/v1/yoco-sdk-web.js"></script> --}}
+    @if (Route::current()->action['as'] == 'purchases.checkout' || Route::current()->action['as'] == 'purchases.confirmation')
         <script src="https://js.stripe.com/v3/"></script>
         <script src="https://polyfill.io/v3/polyfill.min.js?version=3.52.1&features=fetch"></script>
     @endif
@@ -23,7 +22,7 @@
 
     <!-- Styles -->
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
-    @if (Route::current()->action['as'] == 'purchases.checkout')    
+    @if (Route::current()->action['as'] == 'purchases.checkout' || Route::current()->action['as'] == 'purchases.confirmation')    
         <link href="{{ asset('css/stripe.css') }}" rel="stylesheet">
     @endif
 </head>

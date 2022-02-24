@@ -45,8 +45,7 @@ async function getClientToken() {
     $.ajax({
         method: "POST",
         url: $('#clientRoute').text(),
-        data: { email: capturedEmail
-},
+        data: { email: capturedEmail },
         headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
         success: response => {
             console.log('CARD TOKEN', response)

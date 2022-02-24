@@ -17,6 +17,8 @@ class CreatePurchases extends Migration
             $table->id();
             $table->string("email");
             $table->foreignId("product_id")->references('id')->on('products');
+            $table->decimal("paid_amount", $precision = 8, $scale = 2)->nullable();
+            $table->boolean('is_deposit')->default(false);
             $table->timestamps();
         });
     }

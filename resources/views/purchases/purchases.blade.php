@@ -30,19 +30,18 @@
                         <table class="table table-striped">
                             <thead>
                                 <tr>
-                                    <th scope="col">#</th>
                                     <th scope="col">Image</th>
                                     <th scope="col">Name</th>
                                     <th scope="col">Price</th>
-                                    <th scope="col">Paid Amount</th>
+                                    <th scope="col">Amount Paid</th>
                                     <th scope="col">Purchaser Email</th>
-                                    <th scope="col">Deposit Payments</th>
+                                    <th scope="col">Is Deposit ?</th>
+                                    <th scope="col">Date</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach($purchases as $key => $purchase)    
                                     <tr>
-                                        <th scope="row">{{ $key + 1 }}</th>
                                         <td>
                                             <img src="{{ asset($purchase->image) }}" alt="" style="width: 50px; height: 50px">
                                         </td>
@@ -50,7 +49,8 @@
                                         <td>{{ $purchase->currency_symbol }} {{ $purchase->price }}</td>
                                         <td>{{ $purchase->currency_symbol }} {{ $purchase->paid_amount }}</td>
                                         <td>{{ $purchase->purchaser_email }}</td>
-                                        <td>{{ $purchase->is_deposit }}</td>
+                                        <td>{{ $purchase->is_deposit ? 'true' : 'false' }}</td>
+                                        <td>{{ date_format(date_create($purchase->bougnt_date), "Y-m-d") }}</td>
                                     </tr>
                                 @endforeach
                             </tbody>

@@ -54,7 +54,7 @@ class ProcessPaymentEmail implements ShouldQueue
             'to' => $purchase->email,
             'bodyHtml' => 
                 '<div style="text-align:center; padding: 30px;">'.
-                    '<h2 style="color:#1E90FF;">Thank you for shopping at the OnlineStore</h2>'.
+                    '<h2 style="color:#1E90FF;">Thank you for shopping at the OnlineMarketPlace</h2>'.
                     '<p>You have successfully purchased the following product at our online store:</p>'.
                     '<table style="font-family: Arial, Helvetica, sans-serif;border-collapse: collapse;width: 100%; margin-top: 20px;">'.
                         '<thead style="padding-top: 12px;padding-bottom: 12px;text-align: left;background-color: #1E90FF;color: white;">'.
@@ -76,7 +76,7 @@ class ProcessPaymentEmail implements ShouldQueue
                             '</tr>'.
                         '</tbody>'.
                     '</table>'.
-                    '<p style="margin-top: 30px">&copy; OnlineStore 2022</p>'.
+                    '<p style="margin-top: 30px">&copy; OnlineMarketPlace 2022</p>'.
                 '</div>'
         ]);
     }

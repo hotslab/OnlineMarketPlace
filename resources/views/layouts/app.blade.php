@@ -86,6 +86,6 @@
     </div>
 </body>
 <footer class="footer mt-5 p-3 bg-primary text-center text-white">
-    <p>&copy; OnlineStore 2022</p>
+    <p>&copy; OnlineMarketPlace 2022</p>
 </footer>
 </html>

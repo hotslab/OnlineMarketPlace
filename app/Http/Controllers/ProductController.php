@@ -147,8 +147,10 @@ class ProductController extends Controller
             'pr.id as purchase_id', 
             'pr.email as purchaser_email',
             'pr.paid_amount',
+            'pr.is_deposit',
+            'pr.created_at as bougnt_date',
             'up.id as user_product_id'
-        )->paginate(15);
+        )->orderBy("bougnt_date", "DESC")->paginate(15);
         return View::make('purchases.purchases', ['type' => $request->input("type"), 'purchases' => $purchases ]);
     }
 
@@ -231,10 +233,12 @@ class ProductController extends Controller
 
     public function purchase(Request $request) 
     {
+        $product = Product::find($request->input("productID"));
         $purchase = Purchase::create([
             "product_id" =>  $request->input("productID"),
             "email" => $request->input("email"),
-            "paid_amount" => $request->input("paidAmount")
+            "paid_amount" => $request->input("paidAmount"),
+            "is_deposit" => $product->price > $request->input("paidAmount")
         ]);
         if ($purchase) {
             return response()->json([

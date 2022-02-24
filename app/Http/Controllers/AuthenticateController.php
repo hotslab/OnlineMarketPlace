@@ -8,10 +8,11 @@ use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
-use App\Models\User;
+use App\Jobs\ProcessPasswordResetEmail;
+use App\Jobs\ProcessEmailVerification;
 use App\Models\PasswordReset;
+use App\Models\User;
  
 class AuthenticateController extends Controller
 {
@@ -44,36 +45,18 @@ class AuthenticateController extends Controller
             'password' => Hash::make($request->input('password')),
         ]);
         if ($newUser) {
-            $status = $this->sendVerificationEmail($newUser);
-            if ($status['status'] == 200) {
+            try {
+                ProcessEmailVerification::dispatchAfterResponse($newUser->id);
                 return redirect()->route('login.view')->with(
                     'success', 
                     'Registration was successful. We have sent you an activation link to '.$newUser->email.', please check in all your folders for the link.'
                 );
-            } else {
-                return back()->with('failure', 'Verification email could not be sent to '.$newUser->email.' due to unkown error.');        
+            } catch (\Throwable $th) {
+                return back()->with('failure', 'Verification email could not be sent to '.$newUser->email.' due to : '.$th->getMessage);        
             }
         } else {
             back()->with('failure', 'Profile could not be created. Please try again.');
         }
-    }
-
-    protected function sendVerificationEmail(User $user)
-    {
-        $response = Http::get('https://api.elasticemail.com/v2/email/send', [
-            'apikey' => env('ELASTIC_EMAIL_API'),
-            'subject' => 'Email verificaton for '.$user->name.' '.$user->surname,
-            'from' => env('ELASTIC_EMAIL_SENDER_ADDRESS'),
-            'to' => $user->email,
-            'bodyHtml' => 
-                '<div style="text-align:center; padding: 30px;">'.
-                    '<h2 style="color:#1E90FF;">Wecome to the OnlineStore</h2>'.
-                    '<p>Please verify your email by clicking the link below in order to activate your account. The you can start adding and selling products online:</p>'.
-                    '<a href="'.route('email.verify', ['id' => $user->id]).'" style="text-decoration: none;cursor: pointer;">Verify Email</a>'.
-                    '<p style="margin-top: 30px">&copy; OnlineStore 2022</p>'.
-                '</div>'
-        ]);
-        return ["status" => $response->status()];
     }
 
     public function logout(Request $request)
@@ -129,11 +112,11 @@ class AuthenticateController extends Controller
                 ['token' => $token]
             );
             if ($paswwordReset) {
-                $status = $this->sendPasswordResetEmail($userExists, $token);
-                if ($status['status'] == 200) {
+                try {
+                    ProcessPasswordResetEmail::dispatchAfterResponse($userExists->id, $token);
                     return redirect()->route('password.otp', ['id' => $userExists->id]);
-                } else {
-                    return back()->with('failure', 'Password reset token could not be sent to  '.$request->input('email').'. Please try again with a valid email.');        
+                } catch (\Throwable $th) {
+                    return back()->with('failure', 'Password reset token could not be sent to  '.$request->input('email').' due to: '.$th->getMessage());        
                 }
             } else {
                 return back()->with('failure', 'No user with the email '.$request->input('email').' has been found. Please try again.');    
@@ -141,24 +124,6 @@ class AuthenticateController extends Controller
         } else {
             return back()->with('failure', 'No user with the email '.$request->input('email').' has been found. Please try again.');
         }
-    }
-
-    protected function sendPasswordResetEmail(User $user, $token)
-    {
-        $response = Http::get('https://api.elasticemail.com/v2/email/send', [
-            'apikey' => env('ELASTIC_EMAIL_API'),
-            'subject' => 'Password reset for '.$user->name.' '.$user->surname,
-            'from' => env('ELASTIC_EMAIL_SENDER_ADDRESS'),
-            'to' => $user->email,
-            'bodyHtml' => 
-                '<div style="text-align:center; padding: 30px;">'.
-                    '<h2 style="color:#1E90FF;">Reset your password for the OnlineStore</h2>'.
-                    '<p>Please enter the otp below in the password reset screen to reset your password :</p>'.
-                    '<h4 style="color:#1E90FF;">'.$token.'</h4>'.
-                    '<p style="margin-top: 30px">&copy; OnlineStore 2022</p>'.
-                '</div>'
-        ]);
-        return ["status" => $response->status()];
     }
 
     public function otpScreen($id)

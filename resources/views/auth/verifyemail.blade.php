@@ -7,7 +7,7 @@
             <h5>Verify Email</h5>
         </div>
         <div class="card p-3 m-3" style="width: 18rem;">
-            <div class="card-header">Welcome to OnlineStore</div>
+            <div class="card-header">Welcome to OnlineMarketPlace</div>
             <div class="card-body">
                 @if (session('resent'))
                     <div class="alert alert-success" role="alert">

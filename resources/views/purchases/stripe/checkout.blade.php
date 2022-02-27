@@ -122,7 +122,7 @@
             </div>
         </div>
         <div class="card p-3 m-3" style="width: 300px;">
-            <img class="card-img-top" src="{{ asset($product->image) }}" alt="Card image cap">
+            <div class="online-store-img-container" style="background-image: url({{ asset($product->image) }});"></div>
             <div class="card-body">
                 <h5 id="productName" class="card-text">{{ $product->name }}</h5>
                 <h3 class="card-text">

@@ -7,20 +7,39 @@
         <a href="{{ route('userproducts.edit', ['status' => 'create', 'productID' => null ]) }}" class="btn btn-primary">Add New Product</a>
     </div>
     <div class="row justify-content-center">
-        @foreach ($userProducts as $userProduct)
-            <div class="card m-3 p-2" style="width:250px;">
-                <img class="card-img-top" src="{{ asset($userProduct->product->image) }}" alt="Card image cap">
-                <div class="card-body">
-                    <h6 class="card-title">{{ $userProduct->product->name }}</h6>
-                    <p class="card-text">{{ $userProduct->product->currency_symbol }} {{ $userProduct->product->price }}</p>
-                    <div class="mt-3 d-flex justify-content-end">
-                        <a href="{{ route('products.show', ['id' => $userProduct->product->id ]) }}" class="btn btn-primary">View</a>
+        @if(count($userProducts) > 0)
+            <div class="card my-3 mx-0 p-0 w-100">
+                <div class="card-body m-0 p-0">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Image</th>
+                                    <th scope="col">Name</th>
+                                    <th scope="col">Price</th>
+                                    <th scope="col">Date</th>
+                                    <th scope="col">View</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($userProducts as $userProduct)    
+                                    <tr>
+                                        <td class="onlinestore-table-img" style="background-image: url({{ asset($userProduct->product->image) }});"></td>
+                                        <td>{{ $userProduct->product->name }}</td>
+                                        <td>{{ $userProduct->product->currency_symbol }} {{ $userProduct->product->price }}</td>
+                                        <td>{{ date_format(date_create($userProduct->created_at), "Y-m-d") }}</td>
+                                        <td>
+                                            <a href="{{ route('products.show', ['id' => $userProduct->product->id ]) }}" class="btn btn-primary">Edit</a>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
-        @endforeach
-        @if(count($userProducts) <= 0)
-            <div class="card mt-3 mb-3 p-5 w-100" style="width:250px;">
+        @else
+            <div class="card mt-0 mb-3 p-5 w-100" style="width:250px;">
                 <div class="card-body">
                     <h5 class="card-title text-center">No records found</h5>
                 </div>

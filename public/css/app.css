@@ -1,4 +1,44 @@
 @import url(https://fonts.googleapis.com/css?family=Nunito);
+.online-store-img-container {
+    width: 100%;
+    height: 220px;
+    background-color: #cccccc;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+.onlinestore-table-img {
+    width: 70px;
+    height: 70px;
+    background-color: #cccccc;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+.hidden {
+  display: none;
+}
+
+#payment-message {
+  color: rgb(105, 115, 134);
+  font-size: 16px;
+  line-height: 20px;
+  padding-top: 12px;
+  text-align: center;
+}
+
+#payment-element {
+  margin-bottom: 24px;
+}
+
+@media only screen and (max-width: 600px) {
+  form {
+    width: 80vw;
+    min-width: initial;
+  }
+}
 @charset "UTF-8";
 /*!
  * Bootstrap v5.1.3 (https://getbootstrap.com/)

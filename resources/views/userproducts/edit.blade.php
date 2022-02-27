@@ -13,7 +13,7 @@
         </div>
         @if($status == 'edit')
             <div class="card my-3 mx-0 text-center" style="width:250px;">
-                <img class="card-img-top" src="{{ $product->image }}" alt="Card image cap">
+                <div class="online-store-img-container" style="background-image: url({{ asset($product->image) }});"></div>
             </div>
         @endif
         <form id="product-create-or-edit" 

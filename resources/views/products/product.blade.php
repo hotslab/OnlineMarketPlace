@@ -6,7 +6,7 @@
     </div>
     <div class="row justify-content-center">
         <div class="card p-3 m-3" style="width: 300px;">
-            <img class="card-img-top" src="{{ asset($product->image) }}" alt="Card image cap">
+            <div class="online-store-img-container" style="background-image: url({{ asset($product->image) }});"></div>
             <div class="card-body">
                 <h4 class="card-title">{{ $product->name }}</h4>
                 <p class="card-text">{{ $product->currency_symbol }} {{ $product->price }}</p>

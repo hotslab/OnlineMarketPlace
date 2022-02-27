@@ -33,18 +33,16 @@
                                     <th scope="col">Image</th>
                                     <th scope="col">Name</th>
                                     <th scope="col">Price</th>
-                                    <th scope="col">Amount Paid</th>
-                                    <th scope="col">Purchaser Email</th>
-                                    <th scope="col">Is Deposit ?</th>
+                                    <th scope="col">Paid</th>
+                                    <th scope="col">Email</th>
+                                    <th scope="col">Deposit ?</th>
                                     <th scope="col">Date</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach($purchases as $key => $purchase)    
                                     <tr>
-                                        <td>
-                                            <img src="{{ asset($purchase->image) }}" alt="" style="width: 50px; height: 50px">
-                                        </td>
+                                        <td class="onlinestore-table-img" style="background-image: url({{ asset($purchase->image) }});"></td>
                                         <td>{{ $purchase->product_name }}</td>
                                         <td>{{ $purchase->currency_symbol }} {{ $purchase->price }}</td>
                                         <td>{{ $purchase->currency_symbol }} {{ $purchase->paid_amount }}</td>

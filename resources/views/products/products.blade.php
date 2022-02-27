@@ -8,7 +8,7 @@
     <div class="row justify-content-center">
         @foreach ($products as $product)
             <div class="card m-3 p-2" style="width:250px;">
-                <img class="card-img-top" src="{{ $product->image }}" alt="Card image cap">
+                <div class="online-store-img-container" style="background-image: url({{ $product->image }});"></div>
                 <div class="card-body">
                     <h6 class="card-title">{{ $product->name }}</h6>
                     <p class="card-text">{{ $product->currency_symbol }} {{ $product->price }}</p>

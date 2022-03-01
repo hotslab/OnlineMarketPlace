@@ -13,7 +13,7 @@ use App\Jobs\ProcessPasswordResetEmail;
 use App\Models\User;
 use App\Models\PasswordReset;
 
-class AuthenticateTest extends TestCase
+class UserTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -26,12 +26,12 @@ class AuthenticateTest extends TestCase
             'password' => Hash::make('testpassword1234'),
             'email_verified_at' => now()
         ]);
-        $response = $this->from('login.view')->post(route('login.post'), [
+        $response = $this->from(route('login.view'))->post(route('login.post'), [
             'email' => 'invalid@email.com',
             'password' => 'invalid-password',
         ]);
         $response->assertValid(['password', 'email']);
-        $response->assertRedirect('login.view');
+        $response->assertRedirect(route('login.view'));
         $response->assertSessionHas('failure', 'Incorrect credentials used. Please try again.');
         $this->assertGuest();
     }
@@ -45,19 +45,19 @@ class AuthenticateTest extends TestCase
             'password' => Hash::make('testpassword1234'),
             'email_verified_at' => now()
         ]);
-        $response = $this->from('login.view')->post(route('login.post'), [
+        $response = $this->from(route('login.view'))->post(route('login.post'), [
             'email' => $user->email,
             'password' => 'testpassword1234',
         ]);
         $response->assertValid(['password', 'email']);
-        $response->assertRedirect('/');
+        $response->assertRedirect(route('products.view'));
         $this->assertAuthenticatedAs($user);
     }
 
     public function test_user_registered_and_redirected_to_login_page_and_email_verification_sent()
     {
         Bus::fake();
-        $response = $this->from('register.view')->post(route('register.post'), [
+        $response = $this->from(route('register.view'))->post(route('register.post'), [
             'name' => 'John',
             'surname' => 'Doe',
             'email' => 'testemail@example.com',
@@ -65,7 +65,7 @@ class AuthenticateTest extends TestCase
             'password_confirmation' => 'testpassword1234'
         ]);
         $response->assertValid(['name', 'surname', 'email', 'password']);
-        $response->assertRedirect('login');
+        $response->assertRedirect(route('login.view'));
         $response->assertSessionHas(
             'success', 
             'Registration was successful. We have sent you an activation link to testemail@example.com, please check in all your folders for the link.'
@@ -77,6 +77,7 @@ class AuthenticateTest extends TestCase
             'email' => 'testemail@example.com'
         ]);
         Bus::assertDispatchedAfterResponse(ProcessEmailVerification::class);
+        $this->assertGuest();
     }
 
     public function test_user_is_authenticated_but_unverified_redirected_to_login_page_with_error_message_and_email_verification_sent()
@@ -94,7 +95,7 @@ class AuthenticateTest extends TestCase
         $this->assertGuest();
     }
 
-    public function test_user_submits_email_to_reset_password_and_otp_is_sent_to_email_address()
+    public function test_user_submits_email_field_to_reset_password_and_otp_is_sent_to_email_address()
     {
         Bus::fake();
         $user = User::factory()->create();
@@ -106,7 +107,7 @@ class AuthenticateTest extends TestCase
         $this->assertGuest();
     }
 
-    public function test_user_submits_otp_and_new_pasword_to_reset_password_is_redirected_to_login_page()
+    public function test_user_submits_otp_and_new_pasword_fields_to_reset_password_is_redirected_to_login_page()
     {
         $user = User::factory()->create();
         $token = Str::random(4);
@@ -118,6 +119,42 @@ class AuthenticateTest extends TestCase
             'password_confirmation' => 'newpassword',
             'user_id' => $user->id
         ]);
+        $response->assertValid(['otp', 'password']);
+        $response->assertRedirect(route('login.view'));
+        $response->assertSessionHas('success', 'The password for '.$user->email.' was successfully reset.');
+        $this->assertGuest();
+    }
 
+    public function test_user_updates_profile_details_and_redirects_to_profile_page()
+    {
+        $user = User::factory()->create();
+        $this->assertGuest();
+        $this->actingAs($user);
+        $this->assertAuthenticatedAs($user);
+        $response = $this->from(route('profile.view'))->post(route('profile.update'), [
+            'name' => 'John',
+            'surname' => 'Wick',
+            'email' => 'baba-yaga@continental.com',
+        ]);
+        $response->assertValid(['name', 'surname', 'email']);
+        $response->assertRedirect(route('profile.view'));
+        $response->assertSessionHas('success', 'Profile details updated successfully.');
+        $this->assertAuthenticatedAs($user);
+    }
+
+    public function test_user_changes_password_on_profile_page_and_redirects_to_profile_page()
+    {
+        $user = User::factory()->create();
+        $this->assertGuest();
+        $this->actingAs($user);
+        $this->assertAuthenticatedAs($user);
+        $response = $this->from(route('profile.view'))->post(route('profile.passwordreset'), [
+            'password' => 'newpassword',
+            'password_confirmation' => 'newpassword',
+        ]);
+        $response->assertValid(['password']);
+        $response->assertRedirect(route('profile.view'));
+        $response->assertSessionHas('success', 'Password reset successfully.');
+        $this->assertAuthenticatedAs($user);
     }
 }

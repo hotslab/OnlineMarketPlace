@@ -55,5 +55,5 @@ Route::middleware(['auth', 'is_verified_email'])->group(function () {
     // Profile
     Route::get('profile', function () { return view('auth.profile', ['user' => auth()->user()]); })->name("profile.view");
     Route::post('profile', 'App\Http\Controllers\AuthenticateController@profileUpdate')->name("profile.update");
-    Route::post('profile/password/reset', 'App\Http\Controllers\AuthenticateController@profilePasswordReset')->name("profile.passwordreset");
+    Route::post('profile-password-reset', 'App\Http\Controllers\AuthenticateController@profilePasswordReset')->name("profile.passwordreset");
 });

@@ -122,7 +122,7 @@
                 <div class="d-flex flex-column justify-content-between">
                     <span class="card-text mb-2">1. Enter the email address above for purchasing with.</span>
                     <span class="card-text mb-2">2. Use the card details above to fill in in the payment pop up.</span>
-                    <span class="card-text mb-2">3. Press the pay button to purchase the product.</span>
+                    <span class="card-text mb-2">3. Press the <span class="text-success">Submit</span> button to purchase the product.</span>
                 </div>
             </div>
         </div>

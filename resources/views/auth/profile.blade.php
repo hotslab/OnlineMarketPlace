@@ -11,7 +11,7 @@
         <div class="text-bold mt-3 md-4">
             <h5>Update Profile</h5>
         </div>
-        <form id="update-user-form" class="mt-4" method="POST" action="{{ route('profile.update') }}">
+        <form id="update-user-details-form" class="mt-4" method="POST" action="{{ route('profile.update') }}">
             @csrf
             <div class="form-group">
                 <label for="name">Name</label>
@@ -41,7 +41,7 @@
         <div class="text-bold mt-3 md-4">
             <h5>Change Password</h5>
         </div>
-        <form id="update-user-form" class="mt-4" method="POST" action="{{ route('profile.passwordreset') }}">
+        <form id="update-user_password-form" class="mt-4" method="POST" action="{{ route('profile.passwordreset') }}">
             @csrf
             <div class="form-group">
                 <label for="password">Password</label>

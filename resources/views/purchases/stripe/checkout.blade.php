@@ -8,7 +8,7 @@
         <h5>Checkout</h5>
     </div>
     <div id="spinnerDisplay" class="row justify-content-center">
-        <div class="col-md-6">
+        <div class="col-md-6 m-4 d-flex justify-content-center">
             <div class="spinner-grow text-primary" role="status"></div>
         </div>
     </div>
@@ -55,12 +55,17 @@
         <div class="col-md-6 d-flex justify-content-center">
             <div class="card m-3 p-2">
                 <div class="card-body text-center">
-                    <p class="card-text">You have a saved payment method associated with your selected email. Please click the <span class="text-primary">Pay</span> button to continue buying</p>
+                    <p class="card-text">
+                        You have a saved payment method associated with your selected email. Please click the <span class="text-success">Pay</span> 
+                        button to continue buying, or click the <span class="text-primary">New</span> button to use a new payment method, 
+                        or click <span class="text-danger">Cancel</span> to close the payment process.
+                    </p>
                     <h5 class="text-primary">{{ $product->name }} - {{ $product->currency_symbol }} {{ $product->price }}</h5>
                     <div class="form-group mt-3 d-flex justify-content-between align-items-center">
                         <a style="z-index: 0" href="{{ route('products.show', ['id' => $product->id ]) }}" class="card-link ml-3 btn btn-danger">
                             Cancel
                         </a>
+                        <button type="submit" id="captureNewPaymentMethod" class="btn btn-primary">New</button>
                         <button type="submit" id="captureSavedPayment" class="btn btn-success">Pay</button>
                     </div>
                 </div>

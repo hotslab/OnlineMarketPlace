@@ -39,7 +39,7 @@
                 </div>
             </div>
         @else
-            <div class="card mt-0 mb-3 p-5 w-100" style="width:250px;">
+            <div class="card mt-3 mb-3 p-5 w-100" style="width:250px;">
                 <div class="card-body">
                     <h5 class="card-title text-center">No records found</h5>
                 </div>

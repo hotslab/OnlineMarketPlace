@@ -19,7 +19,8 @@ class PurchaseTest extends TestCase
     {
         $product = Product::factory()->create();
         $response = $this->from(route('purchases.checkout', [ 'id' => $product->id ]))->post(route('purchases.client'), [
-            'email' => 'baba-yaga@continental.com'
+            'email' => 'baba-yaga@continental.com',
+            'ignoreSavedDetails' => false
         ]);
         $response->assertValid(['email']);
         $response->assertJsonPath('status', 'success');

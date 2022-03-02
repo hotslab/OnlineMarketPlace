@@ -11,6 +11,7 @@ let elements = null
 let currentErrorTimeout = null
 let currentSuccessTimeout = null
 let hasSavedDetails = null
+let ignoreSavedDetails = false
 
 checkStatus();
 
@@ -39,13 +40,21 @@ $('#fullPayment').click(async event => {
     await getClientToken()
 })
 
+$('#captureNewPaymentMethod').click(async event => {
+    event.preventDefault()
+    $('#spinnerDisplay').show()
+    $('#stripeSavedPaymentForm').hide()
+    ignoreSavedDetails = true
+    await getClientToken()
+})
+
 async function getClientToken() {
     $('#productAndEmailForm').hide()
     $('#spinnerDisplay').show()
     $.ajax({
         method: "POST",
         url: $('#clientRoute').text(),
-        data: { email: capturedEmail },
+        data: { email: capturedEmail, ignoreSavedDetails: ignoreSavedDetails },
         headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
         success: response => {
             console.log('CARD TOKEN', response)
@@ -54,6 +63,7 @@ async function getClientToken() {
                 $('#spinnerDisplay').hide()
                 $('#stripeSavedPaymentForm').show()
             } else {
+                console.log('RESPONDE', response)
                 elements = stripe.elements({ clientSecret: response.clientSecret })
                 const paymentElement = elements.create("payment")
                 paymentElement.mount("#payment-element")

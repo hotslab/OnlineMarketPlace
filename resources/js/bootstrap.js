@@ -1,25 +1,21 @@
 window._ = require('lodash');
 
 try {
-    window.$ = window.jQuery = require('jquery');
-    // window.$ = require('jquery');
-    console.log("JQUERY lOADED");
+    window.$ = window.jQuery = require('jquery')
 } catch (e) { 
-    console.log(e, "ERROR LOADING JQUERY");
+    //
 }
 
 try {
-    require('bootstrap');
-    console.log("BOOTSTRAP lOADED");
+    require('bootstrap')
 } catch (e) {
-    console.log(e, "ERROR LOADING BOOTSTRAP")
+    //
 }
 
 try {
     if (Stripe) require('./stripe')
-    console.log("STRIPE IS LOADED")
 } catch (e) {
-    console.log(e, "ERROR LOADING STRIPE")
+    //
 }
 
 

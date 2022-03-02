@@ -165,10 +165,12 @@ class ProductController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'email' => ['required', 'string', 'email', 'max:255'],
+            'ignoreSavedDetails' => ['required']
         ]);
         if ($validator->fails()) { 
             $errorMessage = "";
             foreach ($validator->errors()->get('email') as $key => $message) { $errorMessage .= ($key + 1).". ".$message." "; }
+            foreach ($validator->errors()->get('ignoreSavedDetails') as $key => $message) { $errorMessage .= ($key + 1).". ".$message." "; }
             return response()->json([
                 'status' => 'failure',
                 'code' => 500,
@@ -186,41 +188,25 @@ class ProductController extends Controller
                 ]);
             }
             $setupIntent = null;
-            $setupIntents = $stripe->setupIntents->all(['customer' => $customer->id ]);
-            $setupIntent = collect($setupIntents->data)->filter(function($intent) { return $intent->status == 'succeeded'; })->first();
-            if (!$setupIntent) {
-                $setupIntent = $stripe->setupIntents->create([
-                    'customer' => $customer->id, 
-                    'payment_method_types' => ['card'],
-                    'description' => 'Card payment details for '.$request->input('email'),
-                    'metadata'=> ['customer_email' => $request->input('email')],
-                    'usage' => 'off_session'
-                ]);
-                if ($setupIntent) {
+            if ($request->input('ignoreSavedDetails') == 'true') {
+                $response = $this->createNewStripeIntent($request, $customer, $stripe);
+                return $response['code'] == 200 ? response()->json($response, 200) : response()->json($response, 500);
+            } else {
+                $setupIntents = $stripe->setupIntents->all(['customer' => $customer->id ]);
+                $setupIntent = collect($setupIntents->data)->filter(function($intent) { return $intent->status == 'succeeded'; })->sortBy('created')->values()->first();
+                if (!$setupIntent) {
+                    $response = $this->createNewStripeIntent($request, $customer, $stripe);
+                    return $response['code'] == 200 ? response()->json($response, 200) : response()->json($response, 500);
+                } else {
                     return response()->json([
-                        'hasSavedDetails' => false,
+                        'hasSavedDetails' => true,
                         'clientSecret' => $setupIntent->client_secret,
                         'customer' => $customer,
                         'setupIntent' => $setupIntent,
                         'code' => 200,
                         'status' => 'success'
                     ], 200);
-                } else {
-                    return response()->json([
-                        "code" => 500,
-                        'message' => 'Payment setup could not be completed due to an unknow error. Please try again or contact support.',
-                        'status' => 'error'
-                    ], 500);
                 }
-            } else {
-                return response()->json([
-                    'hasSavedDetails' => true,
-                    'clientSecret' => $setupIntent->client_secret,
-                    'customer' => $customer,
-                    'setupIntent' => $setupIntent,
-                    'code' => 200,
-                    'status' => 'success'
-                ], 200);
             }
         } catch (Error $e) {
             return response()->json([
@@ -228,6 +214,33 @@ class ProductController extends Controller
                 'message' => $e->getMessage(),
                 'status' => 'error'
             ], 500);
+        }
+    }
+
+    protected function createNewStripeIntent(Request $request, $customer, $stripe)
+    {
+        $setupIntent = $stripe->setupIntents->create([
+            'customer' => $customer->id, 
+            'payment_method_types' => ['card'],
+            'description' => 'Card payment details for '.$request->input('email'),
+            'metadata'=> ['customer_email' => $request->input('email')],
+            'usage' => 'off_session'
+        ]);
+        if ($setupIntent) {
+            return [
+                'hasSavedDetails' => false,
+                'clientSecret' => $setupIntent->client_secret,
+                'customer' => $customer,
+                'setupIntent' => $setupIntent,
+                'code' => 200,
+                'status' => 'success'
+            ];
+        } else {
+            return [
+                "code" => 500,
+                'message' => 'Payment setup could not be completed due to an unknow error. Please try again or contact support.',
+                'status' => 'error'
+            ];
         }
     }
 

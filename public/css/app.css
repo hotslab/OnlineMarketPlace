@@ -1,4 +1,17 @@
 @import url(https://fonts.googleapis.com/css?family=Nunito);
+html, body {
+  height: 100%;
+  margin: 0;
+}
+
+#app {
+  min-height: calc(100vh - 70px);
+}
+
+.footer {
+  height: 70px;
+}
+
 .online-store-img-container {
     width: 100%;
     height: 220px;

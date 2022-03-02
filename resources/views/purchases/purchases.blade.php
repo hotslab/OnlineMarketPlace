@@ -35,7 +35,7 @@
                                     <th scope="col">Price</th>
                                     <th scope="col">Paid</th>
                                     <th scope="col">Email</th>
-                                    <th scope="col">Deposit ?</th>
+                                    <th scope="col">Deposit</th>
                                     <th scope="col">Date</th>
                                 </tr>
                             </thead>

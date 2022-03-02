@@ -22,9 +22,6 @@
 
     <!-- Styles -->
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
-    @if (Route::current()->action['as'] == 'purchases.checkout' || Route::current()->action['as'] == 'purchases.confirmation')    
-        <link href="{{ asset('css/stripe.css') }}" rel="stylesheet">
-    @endif
 </head>
 <body>
     <div id="app">
@@ -84,8 +81,8 @@
             @yield('content')
         </main>
     </div>
+    <footer class="footer m-0 p-3 bg-primary text-center text-white">
+        <p>&copy; OnlineMarketPlace 2022</p>
+    </footer>
 </body>
-<footer class="footer mt-5 p-3 bg-primary text-center text-white">
-    <p>&copy; OnlineMarketPlace 2022</p>
-</footer>
 </html>

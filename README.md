@@ -14,7 +14,6 @@ OR
 git clone git@github.com:hotslab/OnlineMarketPlace.git
 
 cd OnlineMarketPlace
-
 ```
 
 #### Install packages and copy .env file
@@ -24,7 +23,6 @@ cp .env.example .env
 composer install
 npm install
 npm run dev
-
 ```
 
 #### Install SQL Lite and run migrations
@@ -39,14 +37,12 @@ touch database/testdatabase.sqlite
 
 php artisan migrate
 php artisan db:seed --optional for testing and will delete all the data in the sqlite database if run
-
 ```
 
 #### Create symbolic link for image uploads
 
 ```
 php artisan storage:link
-
 ```
 
 #### Running the app
@@ -57,7 +53,6 @@ php artisan storage:link
 php artisan serve -vvv
 npm run watch
 php artisan queue:work --tries=3 -vvv
-
 ```
 
 - Open the url show in the terminal for the `php artisan serve -vvv` command to view the app.
@@ -67,12 +62,10 @@ php artisan queue:work --tries=3 -vvv
 ```
 Email - testemail@example.com
 Password -testpassword1234
-
 ```
 
 #### Unit testing
 
 ```
 php artisan test -vvv
-
 ```

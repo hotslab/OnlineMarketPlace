@@ -47,7 +47,7 @@ php artisan storage:link
 
 #### Running the app
 
-- Open three separate terminals and run the following to test the app.
+- Open three separate terminals and run the following in each respectively to test the app:
 
 ```
 php artisan serve -vvv

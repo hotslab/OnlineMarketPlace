@@ -50,7 +50,7 @@
                     </a>
                     <a 
                         class="card-link ml-3 btn btn-success"
-                        onclick="deleteProduct( '{{ route('userproduct.destroy', ['id' => $product->id ]) }}' )"
+                        onclick="deleteProduct( '{{ route('userproducts.destroy', ['id' => $product->id ]) }}' )"
                     >
                         Delete
                     </a>

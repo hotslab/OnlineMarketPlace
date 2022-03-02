@@ -80,7 +80,7 @@ class UserTest extends TestCase
         $this->assertGuest();
     }
 
-    public function test_user_is_authenticated_but_unverified_redirected_to_login_page_with_error_message_and_email_verification_sent()
+    public function test_user_is_unverified_and_is_then_automaticaly_logged_out_and_redirected_to_login_page_with_error_message_and_email_verification_sent()
     {
         Bus::fake();
         $user = User::factory()->create();
@@ -125,7 +125,7 @@ class UserTest extends TestCase
         $this->assertGuest();
     }
 
-    public function test_user_updates_profile_details_and_redirects_to_profile_page()
+    public function test_user_updates_profile_details_and_redirects_to_profile_page_with_success_message()
     {
         $user = User::factory()->create();
         $this->assertGuest();
@@ -142,7 +142,7 @@ class UserTest extends TestCase
         $this->assertAuthenticatedAs($user);
     }
 
-    public function test_user_changes_password_on_profile_page_and_redirects_to_profile_page()
+    public function test_user_changes_password_on_profile_page_and_redirects_to_profile_page_with_success_message()
     {
         $user = User::factory()->create();
         $this->assertGuest();

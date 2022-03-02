@@ -47,7 +47,7 @@ Route::middleware(['auth', 'is_verified_email'])->group(function () {
     Route::get('user-product-edit-view', 'App\Http\Controllers\ProductController@userProductEdit')->name("userproducts.edit");
     Route::post('user-product-edit', 'App\Http\Controllers\ProductController@store')->name("userproducts.store");
     Route::post('user-product-edit/{id}', 'App\Http\Controllers\ProductController@update')->name("userproducts.update");
-    Route::delete('user-product-edit/{id}', 'App\Http\Controllers\ProductController@destroy')->name("userproduct.destroy");
+    Route::delete('user-product-edit/{id}', 'App\Http\Controllers\ProductController@destroy')->name("userproducts.destroy");
 
     // Purchases
     Route::get('purchases/{id}', 'App\Http\Controllers\ProductController@userPurchases')->name("purchases.view");

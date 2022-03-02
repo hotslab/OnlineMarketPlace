@@ -12,10 +12,10 @@ class Purchase extends Model
     protected $table = "purchases";
 
     protected $fillable = [
-        "email",
-        "product_id",
-        "paid_amount",
-        "is_deposit"
+        'email',
+        'product_id',
+        'paid_amount',
+        'is_deposit'
     ];
 
     public function product()

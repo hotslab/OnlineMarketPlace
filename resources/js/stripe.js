@@ -54,7 +54,7 @@ async function getClientToken() {
     $.ajax({
         method: "POST",
         url: $('#clientRoute').text(),
-        data: { email: capturedEmail, ignoreSavedDetails: ignoreSavedDetails },
+        data: { email: capturedEmail, productID: $('#productID').text(), ignoreSavedDetails: ignoreSavedDetails },
         headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
         success: response => {
             console.log('CARD TOKEN', response)
@@ -63,7 +63,6 @@ async function getClientToken() {
                 $('#spinnerDisplay').hide()
                 $('#stripeSavedPaymentForm').show()
             } else {
-                console.log('RESPONDE', response)
                 elements = stripe.elements({ clientSecret: response.clientSecret })
                 const paymentElement = elements.create("payment")
                 paymentElement.mount("#payment-element")

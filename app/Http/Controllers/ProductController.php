@@ -178,6 +178,14 @@ class ProductController extends Controller
             ], 500);
         } 
         try {
+            $product = Product::find($request->input('productID'));
+            if ($product->userProduct->user->email == $request->input('email')) {
+                return response()->json([
+                    'status' => 'failure',
+                    'code' => 500,
+                    'message' => "You cannot purchase this product as your are its seller based on your email address."
+                ], 500);
+            }
             $stripe = new Stripe\StripeClient(env('STRIPE_SECRET'));
             $customer = null;
             $customers = $stripe->customers->all(['email' => $request->input('email')]);

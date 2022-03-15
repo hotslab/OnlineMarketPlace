@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Bus;
 use App\Models\User;
 use App\Models\Product;
 use App\Models\Purchase;
+use App\Models\UserProduct;
 use App\Jobs\ProcessStripePaymentIntent;
 
 class PurchaseTest extends TestCase
@@ -17,9 +18,15 @@ class PurchaseTest extends TestCase
 
     public function test_submit_email_address_on_checkout_and_receive_client_token_to_capture_stripe_payment_details()
     {
+        $user = User::factory()->create();
         $product = Product::factory()->create();
+        UserProduct::create([
+            "product_id" => $product->id,
+            "user_id" => $user->id
+        ]);
         $response = $this->from(route('purchases.checkout', [ 'id' => $product->id ]))->post(route('purchases.client'), [
             'email' => 'baba-yaga@continental.com',
+            'productID' => 1,
             'ignoreSavedDetails' => false
         ]);
         $response->assertValid(['email']);
